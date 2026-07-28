@@ -180,6 +180,28 @@ const ZEIT_ROWS = [
   { datum:"Di 10.05", erf:"9:00", diff:"1:00",  pt:"1,13", ges:"9:00", ziel:"8:00" },
 ];
 
+// ─── Zeiterfassungs-Erinnerung (zustandsabhängig, nicht erzwungen) ───
+// Persönliche Einstellung: jeder wählt Zeitpunkt und Art selbst. Kein festes
+// Pop-up für alle, keine Uhrzeit, die auch bei Urlaub oder erledigter Buchung feuert.
+const REMINDER_DEFAULTS = { enabled:true, time:"16:30", mode:"leise" }; // mode: 'leise' | 'aktiv'
+
+// Perioden-Stichtag (Payroll/Controlling). Die Eskalation hängt hieran –
+// nicht an einer Tagesuhrzeit. Das eigentliche Ziel ist eine vollständige Periode.
+const PERIOD_DEADLINE = { label:"Freigabe an Controlling" };
+
+// Zählt nur echte Lücken: buchungspflichtige Tage ohne Eintrag.
+// Urlaub, Feiertag, Wochenende und bereits gebuchte Tage zählen nicht mit.
+function countOpenTimeDays(rows) {
+  return rows.filter(r => !r.sum && !r.off && !r.holiday && r.pending).length;
+}
+
+// Eskalationsstufe abhängig von Tagen bis zum Stichtag.
+function reminderLevel(daysToDeadline) {
+  if (daysToDeadline <= 0) return "faellig"; // Stichtag erreicht/überschritten → aktive Kanäle
+  if (daysToDeadline <= 3) return "bald";    // Stichtag naht → deutlicherer Hinweis
+  return "offen";                            // früh → nur stiller Indikator
+}
+
 // ─── Gamification-Einstellungen (Opt-out) ────────────────────────
 const GAMI_DEFAULTS = { progress:true, kudos:true, momentum:true };
 
@@ -191,4 +213,5 @@ Object.assign(window, {
   FEED_SEED, BOARD_COLUMNS, BOARD_CARDS,
   computeProjectProgress, progressZone,
   RISK_ROWS, ZEIT_ROWS, GAMI_DEFAULTS,
+  REMINDER_DEFAULTS, PERIOD_DEADLINE, countOpenTimeDays, reminderLevel,
 });

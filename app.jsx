@@ -31,6 +31,7 @@ function App() {
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [avatarImg, setAvatarImg]     = React.useState(null);
   const [resetCount, setResetCount]   = React.useState(0);
+  const [zeitOpen, setZeitOpen]       = React.useState(countOpenTimeDays(ZEIT_ROWS));
 
   const toggleGami = k => setGami(g => ({ ...g, [k]: !g[k] }));
 
@@ -63,6 +64,9 @@ function App() {
               className={"kmod" + (m.id === module ? " active" : "") + (m.off ? " off" : "")}
               onClick={() => !m.off && setModule(m.id)}>
               {m.label}
+              {m.id === "meinklusa" && zeitOpen > 0 && (
+                <span className="kmod-badge" title={zeitOpen + " Tag(e) noch zu buchen"}>{zeitOpen}</span>
+              )}
             </button>
           ))}
         </nav>
@@ -111,7 +115,7 @@ function App() {
         {module === "projekte"
           ? <ProjektScreen key={resetCount} gami={gami} onReset={reset}/>
           : module === "meinklusa"
-          ? <ZeitScreen/>
+          ? <ZeitScreen onOpenDaysChange={setZeitOpen}/>
           : module === "unternehmen"
           ? <UnternehmenScreen userName={userName}/>
           : null}
