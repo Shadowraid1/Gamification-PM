@@ -144,7 +144,7 @@ function ZeitScreen({ onOpenDaysChange }) {
       return { title:tage + " noch offen · Stichtag in " + daysLeft + " Tagen",
         sub:"Kurz gebucht, dann ist die Periode vollständig." };
     return { title:tage + " in dieser Periode noch offen",
-      sub:"Kein Stress – der Stichtag ist erst in " + daysLeft + " Tagen. Ein Klick genügt." };
+      sub:"Stichtag in " + daysLeft + " Tagen. Jetzt schnell buchen." };
   };
 
   return (
