@@ -37,10 +37,14 @@ function FeedRow({ item, gami, onKudos }) {
   );
 }
 
-function TeamScreen({ feed, progress, sprints, gami, onKudos, onCloseSprint }) {
+function TeamScreen({ feed, progress, sprints, gami, thresholds, onKudos, onCloseSprint }) {
   const received = {};
   TEAM_MEMBERS.forEach(m => { received[m.id] = 0; });
   feed.forEach(it => { received[it.author] = (received[it.author] || 0) + it.kudos.length; });
+
+  // Nur wer tatsächlich gewürdigt wurde, taucht auf. Eine Liste mit Nullen neben
+  // Namen wäre genau die Rangliste, die hier nicht entstehen soll.
+  const withKudos = TEAM_MEMBERS.filter(m => received[m.id] > 0);
 
   return (
     <div className="team-screen">
@@ -73,13 +77,15 @@ function TeamScreen({ feed, progress, sprints, gami, onKudos, onCloseSprint }) {
         <div className="ts-side">
           <div className="ts-sec">Arbeitspakete im Team</div>
           {WORKPACKAGES.map(w => {
-            const p = progress[w.id] ?? w.progress;
+            const p  = progress[w.id] ?? w.progress;
+            const st = wpStatus(w.id, p, thresholds);
             return (
-              <div key={w.id} className={"tsm-row" + (w.owner === ME ? " mine" : "")}>
+              <div key={w.id} className={"tsm-row" + (w.owner === ME ? " mine" : "")}
+                title={w.name + " – " + wpStatusText(st)}>
                 <Avatar id={w.owner} size={26}/>
                 <div className="tsm-info">
                   <div className="tsm-name">{w.name}</div>
-                  <ProgressBar pct={p} width={null}/>
+                  <ProgressBar pct={p} width={null} zoneColor={st.color} plan={st.planned}/>
                 </div>
               </div>
             );
@@ -88,16 +94,21 @@ function TeamScreen({ feed, progress, sprints, gami, onKudos, onCloseSprint }) {
           {gami.kudos && (
             <>
               <div className="ts-sec" style={{marginTop:16}}>Erhaltene Kudos</div>
-              {TEAM_MEMBERS.map(m => (
+              {withKudos.length ? withKudos.map(m => (
                 <div key={m.id} className="tsk-row">
                   <Avatar id={m.id} size={24}/>
                   <span className="tsk-name">{m.name}</span>
-                  <span className="tsk-count">👏 {received[m.id] || 0}</span>
+                  <span className="tsk-count">👏 {received[m.id]}</span>
                 </div>
-              ))}
+              )) : (
+                <div className="tsk-empty">
+                  In dieser Periode wurden noch keine Kudos vergeben.
+                </div>
+              )}
               <div className="ts-note">
                 Bewusst unsortiert dargestellt: Kudos sind kein Wettbewerb und werden nicht als
-                Rangliste geführt.
+                Rangliste geführt. Wer keine Kudos erhalten hat, erscheint hier gar nicht –
+                eine Null neben dem Namen wäre selbst schon eine Wertung.
               </div>
             </>
           )}

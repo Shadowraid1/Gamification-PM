@@ -52,23 +52,48 @@ function Avatar({ id, size = 30 }) {
 }
 
 // ─── Fortschrittsbalken ──────────────────────────────────────────
-function ProgressBar({ pct, width = 90, height = 8, showPct = true, zoneColor }) {
-  const zone = progressZone(pct);
-  const color = zoneColor || zone.color;
+// Die Farbe kommt nicht aus der reinen Prozentzahl, sondern aus dem Abstand
+// zum Soll-Fortschritt. Der kleine Strich im Balken zeigt genau diesen Soll-Wert.
+function ProgressBar({ pct, width = 90, height = 8, showPct = true, zoneColor, plan = null, title }) {
+  const color = zoneColor || progressZone(pct).color;
   return (
-    <span className="pbar-wrap">
+    <span className="pbar-wrap" title={title}>
       <span className="pbar-track" style={{ width, height }}>
         <span className="pbar-fill" style={{ width: pct + "%", background: color }} />
+        {plan != null && plan > 0 && plan < 100 && (
+          <span className="pbar-plan" style={{ left: plan + "%" }}
+            title={"Soll heute: " + plan + " %"} />
+        )}
       </span>
       {showPct && <span className="pbar-pct" style={{ color }}>{pct}%</span>}
     </span>
   );
 }
 
+// ─── Status-Chip (Ampel im Klartext) ─────────────────────────────
+function StatusChip({ st, compact = false }) {
+  return (
+    <span className={"st-chip st-" + st.key} title={wpStatusText(st)}>
+      <span className="st-dot" style={{ background: st.color }} />
+      {compact ? st.short : st.label}
+      {st.key === "warn" || st.key === "crit" ? (
+        <b className="st-delta">{-st.delta} % Rückstand</b>
+      ) : null}
+    </span>
+  );
+}
+
 // ─── Fortschrittsring ────────────────────────────────────────────
-function ProgressRing({ pct, size = 104 }) {
-  const zone = progressZone(pct);
+function ProgressRing({ pct, size = 104, zone: zoneIn, plan = null }) {
+  const zone = zoneIn || progressZone(pct);
   const r = size * 0.38, circ = 2 * Math.PI * r, dash = (pct / 100) * circ;
+  const planAngle = plan != null ? (plan / 100) * 360 - 90 : null;
+  const planPt = planAngle == null ? null : {
+    x1: size/2 + Math.cos(planAngle*Math.PI/180) * (r - size*0.06),
+    y1: size/2 + Math.sin(planAngle*Math.PI/180) * (r - size*0.06),
+    x2: size/2 + Math.cos(planAngle*Math.PI/180) * (r + size*0.06),
+    y2: size/2 + Math.sin(planAngle*Math.PI/180) * (r + size*0.06),
+  };
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="pring">
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--track)" strokeWidth={size*0.09}/>
@@ -76,6 +101,8 @@ function ProgressRing({ pct, size = 104 }) {
         strokeWidth={size*0.09} strokeLinecap="round"
         strokeDasharray={`${dash} ${circ}`} transform={`rotate(-90 ${size/2} ${size/2})`}
         style={{ transition:"stroke-dasharray .6s cubic-bezier(.2,.8,.2,1), stroke .35s" }}/>
+      {planPt && <line x1={planPt.x1} y1={planPt.y1} x2={planPt.x2} y2={planPt.y2}
+        stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" opacity=".55"><title>{"Soll heute: " + plan + " %"}</title></line>}
       <text x={size/2} y={size/2-3} textAnchor="middle" dominantBaseline="middle"
         style={{ fontSize:size*.24, fontWeight:700, fill:zone.color, fontVariantNumeric:"tabular-nums", fontFamily:"inherit" }}>{pct}</text>
       <text x={size/2} y={size/2+size*.15} textAnchor="middle"
@@ -148,14 +175,19 @@ function InlineToast({ text, onDone }) {
 }
 
 // ─── Feiermoment (klein, teambezogen, selbst-schließend) ─────────
-function MomentumOverlay({ emoji, title, sub, streak, onDone }) {
+function MomentumOverlay({ emoji, title, sub, streak, accent, onDone }) {
   React.useEffect(() => { const t = setTimeout(onDone, 5200); return () => clearTimeout(t); }, []);
   return (
     <div className="celeb-overlay" onClick={onDone}>
-      <div className="celeb-card" onClick={e => e.stopPropagation()}>
+      <div className="celeb-card" onClick={e => e.stopPropagation()}
+        style={accent ? { "--progress": accent, "--streak": accent } : undefined}>
+        {/* Konfetti läuft bewusst schnell durch: kurzer Moment, dann ist der Blick wieder frei. */}
         <div className="celeb-confetti">
-          {Array.from({length:14}).map((_,i) => (
-            <span key={i} className={"cfp cfp-"+(i%4)} style={{left:(6+i*6.6)+"%", animationDelay:(i*0.06)+"s"}}/>
+          {Array.from({length:18}).map((_,i) => (
+            <span key={i} className={"cfp cfp-"+(i%4)}
+              style={{ left:(3+i*5.4)+"%",
+                       animationDelay:(i%6*0.03)+"s",
+                       animationDuration:(0.85 + (i%5)*0.07)+"s" }}/>
           ))}
         </div>
         <div className="celeb-emoji">{emoji}</div>
@@ -205,7 +237,7 @@ function TeamMomentum({ sprints, current, compact = false }) {
 }
 
 Object.assign(window, {
-  Icon, Avatar, ProgressBar, ProgressRing,
+  Icon, Avatar, ProgressBar, ProgressRing, StatusChip,
   KudosButton, KudosFaces, InfoDot, InlineToast,
   MomentumOverlay, TeamMomentum,
 });

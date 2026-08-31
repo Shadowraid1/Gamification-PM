@@ -14,10 +14,20 @@ let feedSeq = 100;
 const nextId = () => "f" + (++feedSeq);
 
 // ─── Formular: Fortschritt eines Arbeitspakets setzen ────────────
-function ProgressForm({ wp, value, onClose, onSave }) {
-  const [v, setV] = React.useState(value);
+function ProgressForm({ wp, value, thresholds, onClose, onSave, onThresholds }) {
+  const [v, setV]         = React.useState(value);
+  const [thOpen, setOpen] = React.useState(false);
+  const th    = thresholds[wp.id] || WP_THRESHOLD_DEFAULTS;
+  const st    = wpStatus(wp.id, v, thresholds);
   const delta = v - value;
   const rest  = 100 - v;
+
+  const setTh = patch => {
+    const next = { ...th, ...patch };
+    if (next.crit <= next.warn) next.crit = next.warn + 1;
+    onThresholds(wp.id, next);
+  };
+
   return (
     <div className="ms-entry-wrap">
       <div className="ms-entry-form pf-form">
@@ -27,9 +37,30 @@ function ProgressForm({ wp, value, onClose, onSave }) {
         </div>
         <div className="zef-body">
           <div className="pf-readout">
-            <span className="pf-big" style={{ color: progressZone(v).color }}>{v}%</span>
+            <span className="pf-big" style={{ color: st.color }}>{v}%</span>
             <span className="pf-rest">{rest > 0 ? "noch " + rest + " % bis zum Abschluss" : "Arbeitspaket vollständig"}</span>
+            <StatusChip st={st}/>
           </div>
+
+          {/* Soll-Ist-Vergleich: erklärt die Farbe des Balkens */}
+          {st.plan && (
+            <div className="pf-plan">
+              <div className="pf-plan-bar">
+                <ProgressBar pct={v} width={null} height={11} zoneColor={st.color}
+                  plan={st.planned} showPct={false}/>
+              </div>
+              <div className="pf-plan-txt">
+                <span>Verstrichen: <b>{st.plan.elapsedDays} von {st.plan.totalDays} Arbeitstagen</b></span>
+                <span>Soll heute: <b>{st.planned}%</b></span>
+                <span className={st.delta < 0 ? "pf-neg" : "pf-pos"}>
+                  {st.delta < 0
+                    ? <>Rückstand: <b>{-st.delta} %</b></>
+                    : <>Vor dem Plan: <b>{st.delta} %</b></>}
+                </span>
+              </div>
+            </div>
+          )}
+
           <input className="pf-range" type="range" min="0" max="100" step="1"
             value={v} onChange={e => setV(Number(e.target.value))} autoFocus/>
           <div className="pf-quick">
@@ -37,6 +68,34 @@ function ProgressForm({ wp, value, onClose, onSave }) {
               <button key={q} className={"pf-q" + (v===q ? " active" : "")} onClick={() => setV(q)}>{q}%</button>
             ))}
           </div>
+
+          {/* Schwellen pro Arbeitspaket – jedes AP hat eine andere Toleranz */}
+          <button className={"pf-th-toggle" + (thOpen ? " open" : "")} onClick={() => setOpen(o => !o)}>
+            <Icon name="caret" size={13}/> Ab wann warnt dieses Arbeitspaket?
+            <span className="pf-th-sum">gelb ab {th.warn} % · rot ab {th.crit} % Rückstand</span>
+          </button>
+          {thOpen && (
+            <div className="pf-th">
+              <div className="pf-th-row">
+                <label>Gelb ab</label>
+                <input type="range" min="2" max="40" value={th.warn}
+                  onChange={e => setTh({ warn:Number(e.target.value) })}/>
+                <span className="pf-th-val" style={{color:"var(--warn)"}}>{th.warn} %</span>
+              </div>
+              <div className="pf-th-row">
+                <label>Rot ab</label>
+                <input type="range" min="3" max="60" value={th.crit}
+                  onChange={e => setTh({ crit:Number(e.target.value) })}/>
+                <span className="pf-th-val" style={{color:"var(--danger)"}}>{th.crit} %</span>
+              </div>
+              <div className="pf-th-note">
+                Der Balken wird <b style={{color:"var(--warn)"}}>gelb</b>, sobald das Arbeitspaket mehr
+                als {th.warn} % hinter dem heutigen Soll liegt, und <b style={{color:"var(--danger)"}}>rot</b>
+                {" "}ab {th.crit} %. Gilt nur für dieses Arbeitspaket.
+              </div>
+            </div>
+          )}
+
           <div className="pf-hint">
             {v === 100
               ? <span className="pf-hint-ok">✓ Bei 100 % wird der zugehörige Meilenstein zur Bestätigung freigegeben.</span>
@@ -88,45 +147,71 @@ function MilestoneForm({ ms, onClose, onConfirm }) {
 }
 
 // ─── Seitenpanel: Fortschritt aller Arbeitspakete ────────────────
-function ProgressPanel({ progress, confirmed, onClose, onPick }) {
-  const pct  = computeProjectProgress(progress);
-  const zone = progressZone(pct);
-  const doneWps = WORKPACKAGES.filter(w => (progress[w.id] ?? w.progress) === 100).length;
+function ProgressPanel({ progress, confirmed, thresholds, onClose, onPick }) {
+  const [tab, setTab] = React.useState("open");
+  const pct     = computeProjectProgress(progress);
+  const planned = computePlannedProjectProgress();
+  const zone    = projectZone(pct, planned);
+
+  const open = WORKPACKAGES.filter(w => (progress[w.id] ?? w.progress) < 100);
+  const done = WORKPACKAGES.filter(w => (progress[w.id] ?? w.progress) === 100);
+  const list = tab === "open" ? open : done;
+
+  const row = w => {
+    const p    = progress[w.id] ?? w.progress;
+    const st   = wpStatus(w.id, p, thresholds);
+    const mine = w.owner === ME;
+    return (
+      <button key={w.id} className={"sp-wp" + (mine ? " mine" : "")} onClick={() => onPick(w.id)}
+        title={w.name + " – " + wpStatusText(st)}>
+        <div className="sp-wp-top">
+          <Avatar id={w.owner} size={20}/>
+          <span className="sp-wp-name">{w.name}</span>
+          {mine && <span className="sp-wp-me">Du</span>}
+          <StatusChip st={st} compact/>
+        </div>
+        <ProgressBar pct={p} width={null} zoneColor={st.color} plan={st.planned}/>
+      </button>
+    );
+  };
+
   return (
     <div className="score-panel">
       <div className="sp-header">
         <div>
           <div className="sp-title">Projektfortschritt</div>
-          <div className="sp-zone" style={{color:zone.color}}>{zone.label}</div>
+          <div className="sp-zone" style={{color:zone.color}}>{zone.label} · Soll heute {planned}%</div>
         </div>
         <button className="sp-close" onClick={onClose}>✕</button>
       </div>
 
       <div className="sp-ring-wrap">
-        <ProgressRing pct={pct} size={104}/>
+        <ProgressRing pct={pct} size={104} zone={zone} plan={planned}/>
         <div className="sp-ring-aside">
-          <b>{doneWps} von {WORKPACKAGES.length}</b>
+          <b>{done.length} von {WORKPACKAGES.length}</b>
           <span>Arbeitspaketen abgeschlossen</span>
           <span className="sp-ms-count">{confirmed.size} von {MILESTONES.length} Meilensteinen bestätigt</span>
         </div>
       </div>
 
-      <div className="sp-wp-list">
-        <div className="sp-list-label">Arbeitspakete</div>
-        {WORKPACKAGES.map(w => {
-          const p = progress[w.id] ?? w.progress;
-          const mine = w.owner === ME;
-          return (
-            <button key={w.id} className={"sp-wp" + (mine ? " mine" : "")} onClick={() => onPick(w.id)}>
-              <div className="sp-wp-top">
-                <Avatar id={w.owner} size={20}/>
-                <span className="sp-wp-name">{w.name}</span>
-                {mine && <span className="sp-wp-me">Du</span>}
-              </div>
-              <ProgressBar pct={p} width={null}/>
-            </button>
-          );
-        })}
+      {/* Zwei Reiter: woran noch gearbeitet wird – und was fertig ist */}
+      <div className="sp-tabs">
+        <button className={"sp-tab" + (tab === "open" ? " active" : "")} onClick={() => setTab("open")}>
+          Offen <span className="sp-tab-n">{open.length}</span>
+        </button>
+        <button className={"sp-tab" + (tab === "done" ? " active" : "")} onClick={() => setTab("done")}>
+          Erledigt <span className="sp-tab-n">{done.length}</span>
+        </button>
+      </div>
+
+      <div className={"sp-wp-list" + (tab === "done" ? " is-done" : "")}>
+        {list.length ? list.map(row) : (
+          <div className="sp-empty">
+            {tab === "open"
+              ? "Kein offenes Arbeitspaket – alles steht auf 100 %."
+              : "Noch kein Arbeitspaket abgeschlossen."}
+          </div>
+        )}
       </div>
 
       <div className="sp-note">
@@ -138,7 +223,7 @@ function ProgressPanel({ progress, confirmed, onClose, onPick }) {
 }
 
 // ─── Eigenes Arbeitspaket, prominent über der Tabelle ────────────
-function MyWorkpackage({ progress, onOpen }) {
+function MyWorkpackage({ progress, thresholds, onOpen }) {
   const mine = WORKPACKAGES.filter(w => w.owner === ME);
   if (!mine.length) return null;
   return (
@@ -146,23 +231,32 @@ function MyWorkpackage({ progress, onOpen }) {
       {mine.map(w => {
         const p    = progress[w.id] ?? w.progress;
         const rest = 100 - p;
-        const zone = progressZone(p);
+        const st   = wpStatus(w.id, p, thresholds);
         return (
           <div key={w.id} className={"mywp" + (p >= 75 && p < 100 ? " sprint" : "") + (p === 100 ? " done" : "")}>
             <div className="mywp-left">
               <span className="mywp-tag">Dein Arbeitspaket</span>
               <span className="mywp-name">{w.name}</span>
+              <StatusChip st={st}/>
             </div>
             <div className="mywp-bar">
-              <span className="mywp-track">
-                <span className="mywp-fill" style={{width:p+"%", background:zone.color}}/>
+              <span className="mywp-track" title={wpStatusText(st)}>
+                <span className="mywp-fill" style={{width:p+"%", background:st.color}}/>
+                {st.plan && st.planned > 0 && st.planned < 100 && (
+                  <span className="mywp-plan" style={{left:st.planned+"%"}} title={"Soll heute: " + st.planned + " %"}/>
+                )}
               </span>
-              <span className="mywp-pct" style={{color:zone.color}}>{p}%</span>
+              <span className="mywp-pct" style={{color:st.color}}>{p}%</span>
             </div>
             <div className="mywp-rest">
               {p === 100
                 ? <span className="mywp-ok">✓ abgeschlossen</span>
                 : <>noch <b>{rest} %</b>{p >= 75 && <span className="mywp-push"> · Endspurt</span>}</>}
+              {st.plan && st.key !== "done" && (
+                <span className="mywp-plan-txt">
+                  Tag {st.plan.elapsedDays}/{st.plan.totalDays} · Soll {st.planned}%
+                </span>
+              )}
             </div>
             <button className="mywp-btn" onClick={() => onOpen(w.id)}>Fortschritt aktualisieren</button>
           </div>
@@ -188,10 +282,14 @@ function ProjektScreen({ gami, onReset }) {
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [celeb, setCeleb]         = React.useState(null);
   const [toast, setToast]         = React.useState(null);
+  const [thresholds, setThresh]   = React.useState(WP_THRESHOLDS);
 
   const projPct   = computeProjectProgress(progress);
-  const zone      = progressZone(projPct);
+  const projPlan  = computePlannedProjectProgress();
+  const zone      = projectZone(projPct, projPlan);
   const streak    = computeTeamStreak(sprints);
+
+  const setWpThreshold = (wpId, th) => setThresh(t => ({ ...t, [wpId]: th }));
 
   const showToast = txt => setToast(txt);
 
@@ -331,13 +429,18 @@ function ProjektScreen({ gami, onReset }) {
           {gami.progress && (
             <>
               <button className={"datapflege-pill" + (panelOpen ? " open" : "")}
-                onClick={() => { setPanelOpen(o => !o); setTab(0); }}>
+                onClick={() => { setPanelOpen(o => !o); setTab(0); }}
+                title={"Ist " + projPct + " % · Soll heute " + projPlan + " % · " + zone.label}>
                 <span className="dp-label">Projektfortschritt</span>
-                <span className="dp-track"><span className="dp-fill" style={{width:projPct+"%", background:zone.color}}/></span>
+                <span className="dp-track">
+                  <span className="dp-fill" style={{width:projPct+"%", background:zone.color}}/>
+                  <span className="dp-plan" style={{left:projPlan+"%"}}/>
+                </span>
                 <span className="dp-pct" style={{color:zone.color}}>{projPct}%</span>
+                <span className="dp-soll">/ Soll {projPlan}%</span>
                 <span className="dp-caret">{panelOpen ? "▲" : "▼"}</span>
               </button>
-              <InfoDot text="Der Wert ist der Mittelwert aller Arbeitspakete. Er beschreibt das Projekt, nicht einzelne Personen, und fließt in keine Leistungsbeurteilung ein."/>
+              <InfoDot text="Ist: Durchschnitt aller sechs Arbeitspakete. Soll: so weit müsste das Projekt heute sein, gemessen an der bereits verstrichenen Laufzeit. Die Farbe zeigt, wie weit beides auseinanderliegt. Der Wert beschreibt das Projekt, nicht einzelne Personen."/>
             </>
           )}
           {onReset && <button className="ktool kt-reset" onClick={onReset} title="Demo zurücksetzen"><Icon name="refresh" size={14}/></button>}
@@ -346,8 +449,8 @@ function ProjektScreen({ gami, onReset }) {
 
       {/* Formulare */}
       {editWp && (
-        <ProgressForm wp={wpById(editWp)} value={progress[editWp]}
-          onClose={() => setEditWp(null)} onSave={saveProgress}/>
+        <ProgressForm wp={wpById(editWp)} value={progress[editWp]} thresholds={thresholds}
+          onClose={() => setEditWp(null)} onSave={saveProgress} onThresholds={setWpThreshold}/>
       )}
       {editMs && (
         <MilestoneForm ms={editMs} onClose={() => setEditMs(null)} onConfirm={confirmMilestone}/>
@@ -358,21 +461,20 @@ function ProjektScreen({ gami, onReset }) {
         <BoardScreen cards={cards} gami={gami}
           onMove={moveCard} onComment={addComment} onKudos={toggleCommentKudos}/>
       ) : tab === 2 ? (
-        <TeamScreen feed={feed} progress={progress} sprints={sprints} gami={gami}
+        <TeamScreen feed={feed} progress={progress} sprints={sprints} gami={gami} thresholds={thresholds}
           onKudos={toggleFeedKudos} onCloseSprint={closeSprint}/>
       ) : tab === 3 ? (
         <RisikenScreen/>
       ) : (
         <div className="gantt-content">
           <div className="gantt-main">
-            {gami.progress && <MyWorkpackage progress={progress} onOpen={setEditWp}/>}
+            {gami.progress && <MyWorkpackage progress={progress} thresholds={thresholds} onOpen={setEditWp}/>}
 
             <div className="gantt-table">
               <div className="g-head">
                 <div className="gc gc-num">#</div>
                 <div className="gc gc-p">P…</div>
                 <div className="gc gc-name">Name</div>
-                {gami.progress && <div className="gc gc-prog">Fortschritt</div>}
                 <div className="gc gc-tl">
                   <div className="tl-quarters">
                     <div className="tlq" style={{flex:"0 0 "+(100/NCOL)+"%"}}/>
@@ -388,6 +490,7 @@ function ProjektScreen({ gami, onReset }) {
                 {GANTT_ROWS.map(r => {
                   const wp    = r.wpId ? wpById(r.wpId) : null;
                   const p     = wp ? (progress[wp.id] ?? wp.progress) : null;
+                  const st    = wp ? wpStatus(wp.id, p, thresholds) : null;
                   const ms    = r.msId ? msById(r.msId) : null;
                   const state = ms ? msState(ms) : null;
                   const mine  = wp && wp.owner === ME;
@@ -399,26 +502,15 @@ function ProjektScreen({ gami, onReset }) {
                       <div className="gc gc-name">
                         {r.type === "project" && <><Icon name="expand" size={12} className="g-exp"/><span className="g-proj">P</span></>}
                         {r.type === "group"   && <span className="g-wp wp-neutral"/>}
-                        {r.type === "wp"      && <span className={"g-wp" + (p === 100 ? " wp-done" : " wp-open")}/>}
+                        {r.type === "wp"      && <span className={"g-wp wp-st-" + st.key} title={wpStatusText(st)}/>}
                         {r.type === "ms"      && <span className={"g-ms ms-" + state}/>}
                         <span className="g-name-txt">{r.name}</span>
                         {mine && <span className="g-me">Du</span>}
+                        {ms && state === "done"  && <span className="g-ms-lbl">bestätigt</span>}
+                        {ms && state === "ready" && (
+                          <button className="gms-claim" onClick={() => setEditMs(ms)}>bestätigen</button>
+                        )}
                       </div>
-
-                      {gami.progress && (
-                        <div className="gc gc-prog">
-                          {wp ? (
-                            <button className="gprog-btn" onClick={() => setEditWp(wp.id)}
-                              title={wp.name + " – Fortschritt aktualisieren"}>
-                              <ProgressBar pct={p} width={62}/>
-                            </button>
-                          ) : ms ? (
-                            state === "done"  ? <span className="gms-lbl done">bestätigt</span>
-                            : state === "ready" ? <button className="gms-claim" onClick={() => setEditMs(ms)}>bestätigen</button>
-                            : <span className="gms-lbl">offen</span>
-                          ) : null}
-                        </div>
-                      )}
 
                       <div className="gc gc-tl"
                         onClick={ms && state === "ready" ? () => setEditMs(ms) : undefined}
@@ -428,8 +520,13 @@ function ProjektScreen({ gami, onReset }) {
                         {r.bar?.kind === "summary" && <div className="bar-summary" style={{left:pct(r.bar.start), width:pct(r.bar.span)}}/>}
                         {r.type === "group" && <div className="bar-task bar-plain" style={{left:pct(r.bar.start), width:pct(r.bar.span)}}/>}
                         {r.type === "wp" && (
-                          <div className="bar-task" style={{left:pct(r.bar.start), width:pct(r.bar.span)}}>
-                            <div className="bar-fill" style={{width:p+"%"}}/>
+                          <div className={"bar-task" + (gami.progress ? " bar-click" : "")}
+                            style={{left:pct(r.bar.start), width:pct(r.bar.span)}}
+                            onClick={gami.progress ? e => { e.stopPropagation(); setEditWp(wp.id); } : undefined}
+                            title={wp.name + " – " + wpStatusText(st) + (gami.progress ? " · klicken zum Aktualisieren" : "")}>
+                            <div className="bar-fill" style={{width:p+"%", background:st.color}}/>
+                            {st.plan && st.planned > 0 && st.planned < 100 &&
+                              <span className="bar-plan" style={{left:st.planned+"%"}}/>}
                             {p > 0 && p < 100 && <span className="bar-pct">{p}%</span>}
                           </div>
                         )}
@@ -443,7 +540,7 @@ function ProjektScreen({ gami, onReset }) {
           </div>
 
           {panelOpen && (
-            <ProgressPanel progress={progress} confirmed={confirmed}
+            <ProgressPanel progress={progress} confirmed={confirmed} thresholds={thresholds}
               onClose={() => setPanelOpen(false)} onPick={setEditWp}/>
           )}
         </div>

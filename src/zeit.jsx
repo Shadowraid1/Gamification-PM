@@ -5,12 +5,8 @@
 
 const ZEIT_TABS = ["Kalender","Projektaufwände","Zeiterfassung","Zusammenfassung","Stellvertreter","Standort","Arbeitsunfähigkeit"];
 
-// Demo: Tage bis zum Stichtag je Stufe (steuert die Eskalation sichtbar)
-const DEADLINE_STEPS = [
-  { key:"offen",   days:6, label:"früh (6 Tage)" },
-  { key:"bald",    days:2, label:"Stichtag naht (2 Tage)" },
-  { key:"faellig", days:0, label:"Stichtag erreicht" },
-];
+// Kein Demo-Umschalter mehr: der Screen zeigt den laufenden Monat, das
+// Abzeichenregal darunter zeigt die abgeschlossenen Monate des Jahres.
 
 function ZeitEntryForm({ target, onClose, onSubmit }) {
   const [hours, setHours] = React.useState(target || "8:00");
@@ -98,17 +94,133 @@ function ReminderSettings({ reminder, onChange, onClose, onSimulate }) {
   );
 }
 
+// ─── Abzeichen je Monat (Motiv nach Jahreszeit) ──────────────────
+// Ein Abzeichen für jeden lückenlos erfassten Monat. Es erscheint am ersten
+// Arbeitstag des Folgemonats und lässt sich hier jederzeit wieder ansehen.
+let badgePopupShown = false;   // Pop-up nur einmal je Sitzung
+
+function BadgeShelf({ monthProgress, onOpen }) {
+  const earned = MONTH_BADGES.filter(b => badgeState(b.m) === "earned").length;
+  return (
+    <div className="bshelf">
+      <div className="bshelf-head">
+        <div className="bshelf-title">
+          Abzeichen {BADGE_YEAR}
+          <InfoDot text="Für jeden Monat, in dem alle Arbeitstage erfasst wurden, gibt es ein Abzeichen. Es zählt Vollständigkeit, nicht Tempo, und ist nur für dich sichtbar – es gibt keine Rangliste und keine Auswertung."/>
+        </div>
+        <div className="bshelf-count"><b>{earned}</b> von 12 gesammelt</div>
+      </div>
+
+      <div className="bshelf-row">
+        {MONTH_BADGES.map(b => {
+          const st = badgeState(b.m);
+          return (
+            <button key={b.m} className={"bdg bdg-" + st}
+              style={st === "earned" ? { "--bdg": b.color } : undefined}
+              disabled={st !== "earned"}
+              onClick={() => st === "earned" && onOpen(b)}
+              title={st === "earned" ? b.name + " lückenlos erfasst · " + b.season
+                   : st === "running" ? b.name + " läuft – noch nicht abgeschlossen"
+                   : b.name + " – noch offen"}>
+              <span className="bdg-disc">
+                <span className="bdg-emoji">{b.emoji}</span>
+                {st === "earned" && <span className="bdg-check">✓</span>}
+              </span>
+              <span className="bdg-lbl">{b.short}</span>
+              {st === "running" && <span className="bdg-sub">{monthProgress}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Monatsraster: 20 Kästchen für die Arbeitstage ───────────────
+// Ein Kästchen pro buchungspflichtigem Tag. Gebucht = Haken. Kein Streak, keine
+// Kette, die reißen kann: jedes Kästchen steht für sich, der Monat ist das Ziel.
+function MonthGrid({ today, booked, openDays, complete, onBook, onBookAll }) {
+  const endPhase = isMonthEndPhase(today);
+  const rest     = remainingWorkdays(today);
+
+  return (
+    <div className={"mgrid-wrap" + (complete ? " done" : "") + (endPhase && openDays > 0 ? " urgent" : "")}>
+      <div className="mgrid-head">
+        <div className="mgrid-title">
+          Arbeitstage {MONTH_PERIOD.label}
+          <InfoDot text={"Ein Kästchen je buchungspflichtigem Tag – " + MONTH_WORKDAYS.length +
+            " im Mai. Feiertage und Abwesenheiten sind bewusst keine Kästchen, sie können den Monat nicht unvollständig machen. Die Übersicht ist persönlich und wird nicht mit anderen verglichen."}/>
+        </div>
+        <div className="mgrid-count">
+          <b>{booked.length}</b> von {MONTH_WORKDAYS.length} gebucht
+        </div>
+      </div>
+
+      <div className="mgrid">
+        {MONTH_WORKDAYS.map(w => {
+          const st = dayState(w.d, today, booked);
+          return (
+            <button key={w.d} className={"mday ms-" + st + (w.d === today ? " today" : "")}
+              disabled={st !== "open"} onClick={() => onBook(w.d)}
+              title={w.wd + " " + String(w.d).padStart(2,"0") + "." +
+                (st === "booked" ? " – gebucht" : st === "open" ? " – offen, klicken zum Buchen" : " – noch nicht fällig")}>
+              <span className="mday-wd">{w.wd}</span>
+              <span className="mday-num">{w.d}</span>
+              <span className="mday-mark">{st === "booked" ? "✓" : st === "open" ? "!" : ""}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Kurz vor Monatsende wird aus dem stillen Raster ein konkreter Hinweis */}
+      {endPhase && openDays > 0 && (
+        <div className="mgrid-msg urgent">
+          <Icon name="alert" size={15} stroke={2.2}/>
+          <span>
+            <b>{openDays} {openDays === 1 ? "Tag" : "Tage"} offen</b> · noch {rest} {rest === 1 ? "Arbeitstag" : "Arbeitstage"} bis Monatsende
+            ({String(LAST_WORKDAY).padStart(2,"0")}.05.)
+          </span>
+          <button className="mgrid-act" onClick={onBookAll}>Offene Tage nachbuchen</button>
+        </div>
+      )}
+
+      {!endPhase && openDays > 0 && (
+        <div className="mgrid-msg">
+          <Icon name="info" size={15}/>
+          <span>{openDays} {openDays === 1 ? "Tag" : "Tage"} offen · Zeit bis {String(LAST_WORKDAY).padStart(2,"0")}.05.</span>
+        </div>
+      )}
+
+      {openDays === 0 && (
+        <div className="mgrid-msg ok">
+          <Icon name="check" size={15} stroke={2.2}/>
+          <span>
+            Alles gebucht bis heute – noch {rest} {rest === 1 ? "Arbeitstag" : "Arbeitstage"} im Mai.
+            Bleibt es lückenlos, kommt am ersten Arbeitstag im Juni das Mai-Abzeichen.
+          </span>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 function ZeitScreen({ onOpenDaysChange }) {
   const [entryOpen, setEntryOpen] = React.useState(false);
   const [rows, setRows]           = React.useState(ZEIT_ROWS);
   const [filled, setFilled]       = React.useState(false);
   const [reminder, setReminder]   = React.useState(REMINDER_DEFAULTS);
   const [setOpen, setSetOpen]     = React.useState(false);
-  const [stepIdx, setStepIdx]     = React.useState(0);      // Demo-Eskalationsstufe
+  const [extra, setExtra]         = React.useState([]);    // im Prototyp nachgebuchte Tage
+  const [celeb, setCeleb]         = React.useState(null);
   const [toast, setToast]         = React.useState(null);
 
-  const openDays  = countOpenTimeDays(rows);
-  const daysLeft  = DEADLINE_STEPS[stepIdx].days;
+  // Monatsraster ist die Referenz: offene Tage und Abzeichen hängen daran.
+  const today     = TODAY_OF_MONTH;
+  const booked    = bookedDays(today, extra);
+  const openDays  = countOpenMonthDays(today, booked);
+  const complete  = openDays === 0;
+  const daysLeft  = remainingWorkdays(today);
   const level     = reminderLevel(daysLeft);
 
   // Zielstunden und letzten gebuchten Wert für die Schnellbuchung ermitteln
@@ -123,10 +235,46 @@ function ZeitScreen({ onOpenDaysChange }) {
   const book = hours => {
     setEntryOpen(false);
     setFilled(true);
+    setExtra(e => e.includes(9) ? e : [...e, 9]);   // 09.05. ist der offene Tag in der Tabelle
     setRows(r => r.map(row => row.pending
       ? { ...row, erf:hours, diff:"0:00", pt:"1,00", ges:hours, pending:false, isNew:true }
       : row));
   };
+
+  // Ein Kästchen im Monatsraster direkt buchen
+  const bookDay = d => {
+    setExtra(e => e.includes(d) ? e : [...e, d]);
+    if (d === 9) book("8:00");
+  };
+  const bookAllOpen = () => {
+    setExtra(MONTH_GAPS.slice());
+    setFilled(true);
+    setRows(r => r.map(row => row.pending
+      ? { ...row, erf:"8:00", diff:"0:00", pt:"1,00", ges:"8:00", pending:false, isNew:true }
+      : row));
+  };
+
+  // Abzeichen eines Monats anzeigen – Motiv und Farbe nach Jahreszeit.
+  const openBadge = b => setCeleb({
+    emoji: b.emoji,
+    accent: b.color,
+    title: b.name + " lückenlos erfasst",
+    sub: "Glückwunsch – im " + b.name + " " + BADGE_YEAR + " ist jeder Arbeitstag gebucht. " +
+         "Nichts nachzureichen, keine Rückfrage aus dem Controlling.",
+  });
+
+  // Das Abzeichen des letzten abgeschlossenen Monats erscheint automatisch beim
+  // ersten Öffnen – so, wie es am ersten Arbeitstag des Folgemonats erscheint.
+  React.useEffect(() => {
+    if (badgePopupShown) return;
+    const last = EARNED_MONTHS[EARNED_MONTHS.length - 1];
+    if (last === CURRENT_MONTH - 1) {
+      badgePopupShown = true;
+      const b = badgeByMonth(last);
+      const t = setTimeout(() => openBadge(b), 450);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   const simulate = () => {
     setSetOpen(false);
@@ -141,10 +289,10 @@ function ZeitScreen({ onOpenDaysChange }) {
       return { title:"Stichtag erreicht – " + tage + " noch offen",
         sub:"Zum „" + PERIOD_DEADLINE.label + "\u201c fehlt noch eine Buchung. Im Modus „Aktiv\u201c ginge jetzt zusätzlich eine Benachrichtigung an dich." };
     if (level === "bald")
-      return { title:tage + " noch offen · Stichtag in " + daysLeft + " Tagen",
+      return { title:tage + " noch offen · nur noch " + daysLeft + " Arbeitstage im Monat",
         sub:"Kurz gebucht, dann ist die Periode vollständig." };
     return { title:tage + " in dieser Periode noch offen",
-      sub:"Stichtag in " + daysLeft + " Tagen. Jetzt schnell buchen." };
+      sub:"Noch " + daysLeft + " Arbeitstage bis Monatsende. Jetzt schnell buchen." };
   };
 
   return (
@@ -263,27 +411,23 @@ function ZeitScreen({ onOpenDaysChange }) {
         </div>
       </div>
 
-      {/* Demo-Steuerung: Eskalationsstufe umschalten */}
-      <div className="rem-demo">
-        <span className="rem-demo-lbl">Demo · Stichtag:</span>
-        {DEADLINE_STEPS.map((s,i) => (
-          <button key={s.key} className={"rem-demo-btn" + (i===stepIdx ? " active" : "")}
-            onClick={() => setStepIdx(i)}>{s.label}</button>
-        ))}
-        {filled && (
-          <button className="rem-demo-btn reset"
-            onClick={() => { setRows(ZEIT_ROWS); setFilled(false); }}>Buchung zurücksetzen</button>
-        )}
-      </div>
+      {/* 20 Kästchen für die Arbeitstage des Monats */}
+      <MonthGrid today={today} booked={booked} openDays={openDays} complete={complete}
+        onBook={bookDay} onBookAll={bookAllOpen}/>
+
+      {/* Gesammelte Monatsabzeichen */}
+      <BadgeShelf monthProgress={booked.length + "/" + MONTH_WORKDAYS.length} onOpen={openBadge}/>
 
       <p className="zeit-streak-note">
         <Icon name="info" size={13}/>
         Bewusst kein täglicher Streak auf Einzelpersonen – das erzeugt Druck und bestraft Urlaub
-        oder Krankheit. Die Erinnerung kommt nur bei echten Lücken, blockiert nicht und wird erst
-        zum Perioden-Stichtag deutlicher.
+        oder Krankheit. Das Monatsraster zeigt nur den eigenen Stand: jedes Kästchen steht für sich,
+        eine Lücke reißt keine Kette. Das Abzeichen gibt es einmal im Monat für Vollständigkeit,
+        nicht für Tempo – es ist nur für dich sichtbar und wird nicht ausgewertet.
       </p>
 
       {toast && <InlineToast text={toast} onDone={() => setToast(null)}/>}
+      {celeb && <MomentumOverlay {...celeb} onDone={() => setCeleb(null)}/>}
     </div>
   );
 }

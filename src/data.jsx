@@ -62,6 +62,75 @@ const GANTT_MONTHS   = ["Dez 21","Jan 22","Feb 22","Mrz 22","Apr 22","Mai 22","J
 const GANTT_QUARTERS = [{label:"Q1 2022",from:1,to:3},{label:"Q2 2022",from:4,to:6},{label:"Q3 2022",from:7,to:8}];
 const TODAY_COL = 3.0;
 
+// ─── Terminplan je Arbeitspaket (aus dem GANTT abgeleitet) ───────
+// Eine GANTT-Spalte = ein Monat ≈ 21 Arbeitstage. Daraus ergibt sich für
+// jedes Arbeitspaket: Gesamtdauer, verstrichene Tage und der Soll-Fortschritt.
+const DAYS_PER_COL = 21;
+const WP_SCHEDULE = {};
+GANTT_ROWS.forEach(r => { if (r.type === "wp" && r.bar) WP_SCHEDULE[r.wpId] = { start:r.bar.start, span:r.bar.span }; });
+
+function wpPlan(wpId) {
+  const s = WP_SCHEDULE[wpId];
+  if (!s) return null;
+  const totalDays   = Math.max(1, Math.round(s.span * DAYS_PER_COL));
+  const elapsedDays = Math.min(totalDays, Math.max(0, Math.round((TODAY_COL - s.start) * DAYS_PER_COL)));
+  return {
+    totalDays, elapsedDays,
+    planned: Math.round(elapsedDays / totalDays * 100),  // Soll-Fortschritt = verstrichene Zeit
+    started: TODAY_COL > s.start,
+    over:    TODAY_COL > s.start + s.span,
+  };
+}
+
+// ─── Ampel-Schwellen: pro Arbeitspaket einstellbar ───────────────
+// Gemessen wird der Abstand zwischen Ist und Soll in Prozentpunkten.
+// Beispiel: 5 von 10 Tagen verstrichen (Soll 50 %), erst 10 % erledigt
+// → Rückstand 40 Punkte → rot, sobald crit ≤ 40.
+const WP_THRESHOLD_DEFAULTS = { warn:10, crit:25 };
+const WP_THRESHOLDS = {
+  WP1:{ warn:10, crit:25 },
+  WP2:{ warn:10, crit:25 },
+  WP3:{ warn:8,  crit:20 },   // kritischer Pfad → engere Schwellen
+  WP4:{ warn:15, crit:30 },   // Pilot mit Puffer → großzügiger
+  WP5:{ warn:10, crit:25 },
+  WP6:{ warn:10, crit:25 },
+};
+
+const STATUS_META = {
+  done:    { label:"abgeschlossen",           short:"fertig",     color:"var(--progress)" },
+  ahead:   { label:"vor Plan",                short:"vor Plan",   color:"var(--progress)" },
+  ontrack: { label:"im Plan",                 short:"im Plan",    color:"var(--progress)" },
+  warn:    { label:"hinter Plan",             short:"Rückstand",  color:"var(--warn)"     },
+  crit:    { label:"deutlich hinter Plan",    short:"kritisch",   color:"var(--danger)"   },
+  planned: { label:"noch nicht begonnen",     short:"geplant",    color:"var(--neutral)"  },
+};
+
+// Status eines Arbeitspakets: Ist gegen Soll, bewertet mit den WP-eigenen Schwellen.
+function wpStatus(wpId, actual, thresholds) {
+  const th   = (thresholds && thresholds[wpId]) || WP_THRESHOLDS[wpId] || WP_THRESHOLD_DEFAULTS;
+  const plan = wpPlan(wpId);
+  const mk   = (key, delta) => ({ key, ...STATUS_META[key], th, plan,
+                                  planned: plan ? plan.planned : 0, delta });
+  if (actual >= 100)          return mk("done",    plan ? 100 - plan.planned : 0);
+  if (!plan || !plan.started) return mk("planned", actual);
+  const delta = actual - plan.planned;            // negativ = Rückstand
+  if (delta >= 0)             return mk("ahead",   delta);
+  if (-delta <= th.warn)      return mk("ontrack", delta);
+  if (-delta <= th.crit)      return mk("warn",    delta);
+  return                             mk("crit",    delta);
+}
+
+// Klartext für Tooltip und Formular – bewusst ohne Fachbegriffe
+function wpStatusText(st) {
+  if (!st.plan) return st.label;
+  if (st.key === "planned") return "Start noch nicht erreicht";
+  const zeit = "Tag " + st.plan.elapsedDays + " von " + st.plan.totalDays + " Arbeitstagen";
+  if (st.key === "done") return "Abgeschlossen · " + zeit;
+  return "Soll heute " + st.planned + " % · " + zeit +
+         (st.delta < 0 ? " · " + (-st.delta) + " % im Rückstand"
+                       : " · " + st.delta + " % vor dem Plan");
+}
+
 // ─── Team-Momentum: Sprints im Zeitplan (Kernmechanik 3) ─────────
 // Die Serie zählt auf Teamebene, nicht pro Person.
 const SPRINTS = [
@@ -138,17 +207,46 @@ const BOARD_CARDS = [
 ];
 
 // ─── Fortschrittsberechnung ──────────────────────────────────────
-function computeProjectProgress(progressMap) {
-  const vals = WORKPACKAGES.map(w => progressMap[w.id] ?? w.progress);
-  if (!vals.length) return 0;
-  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+// Zwei nachvollziehbare Definitionen, im Panel umschaltbar:
+//   gleich = ungewichteter Mittelwert aller Arbeitspakete
+//   dauer  = gewichtet mit der geplanten Dauer (ein langes AP zählt mehr)
+function computeProjectProgress(progressMap, mode = "gleich") {
+  if (!WORKPACKAGES.length) return 0;
+  let sum = 0, wsum = 0;
+  WORKPACKAGES.forEach(w => {
+    const v = progressMap[w.id] ?? w.progress;
+    const weight = mode === "dauer" ? (WP_SCHEDULE[w.id] ? WP_SCHEDULE[w.id].span : 1) : 1;
+    sum += v * weight; wsum += weight;
+  });
+  return Math.round(sum / wsum);
 }
 
+// Soll-Fortschritt des Projekts zum heutigen Tag – Referenz für die Ampel.
+function computePlannedProjectProgress(mode = "gleich") {
+  let sum = 0, wsum = 0;
+  WORKPACKAGES.forEach(w => {
+    const plan = wpPlan(w.id);
+    const weight = mode === "dauer" ? (WP_SCHEDULE[w.id] ? WP_SCHEDULE[w.id].span : 1) : 1;
+    sum += (plan ? plan.planned : 0) * weight; wsum += weight;
+  });
+  return Math.round(sum / wsum);
+}
+
+// Farbe des Projektbalkens: ebenfalls Ist gegen Soll, nicht gegen absolute Prozentmarken.
+function projectZone(pct, planned, th = WP_THRESHOLD_DEFAULTS) {
+  if (pct >= 100)              return { key:"done",    ...STATUS_META.done    };
+  const delta = pct - planned;
+  if (delta >= 0)              return { key:"ahead",   ...STATUS_META.ahead,   delta };
+  if (-delta <= th.warn)       return { key:"ontrack", ...STATUS_META.ontrack, delta };
+  if (-delta <= th.crit)       return { key:"warn",    ...STATUS_META.warn,    delta };
+  return                              { key:"crit",    ...STATUS_META.crit,    delta };
+}
+
+// Rückwärtskompatibel: wird nur noch dort benutzt, wo kein Terminbezug existiert.
 function progressZone(pct) {
-  if (pct >= 100) return { label:"abgeschlossen", color:"var(--progress)"       };
-  if (pct >=  60) return { label:"auf Kurs",      color:"var(--progress-light)" };
-  if (pct >=  30) return { label:"in Arbeit",     color:"var(--warn)"           };
-  return               { label:"gestartet",     color:"var(--danger)"         };
+  if (pct >= 100) return { label:"abgeschlossen", color:"var(--progress)" };
+  if (pct === 0)  return { label:"nicht begonnen", color:"var(--neutral)" };
+  return { label:"in Arbeit", color:"var(--progress-light)" };
 }
 
 // ─── Risiken (nicht gamifiziert, normale Projektdaten) ───────────
@@ -202,6 +300,77 @@ function reminderLevel(daysToDeadline) {
   return "offen";                            // früh → nur stiller Indikator
 }
 
+// ─── Monatsraster der Zeiterfassung ──────────────────────────────
+// 20 buchungspflichtige Arbeitstage im Mai 2022. Feiertag (26.05.) und
+// Betriebsurlaub (27.05.) sind bewusst keine Kästchen: Abwesenheit darf den
+// Monat nicht „unvollständig“ machen.
+const MONTH_PERIOD = {
+  label:"Mai 2022",
+  excluded:[ {d:26, reason:"Christi Himmelfahrt"}, {d:27, reason:"Betriebsurlaub"} ],
+};
+const MONTH_WORKDAYS = [
+  { d:2,  wd:"Mo" }, { d:3,  wd:"Di" }, { d:4,  wd:"Mi" }, { d:5,  wd:"Do" }, { d:6,  wd:"Fr" },
+  { d:9,  wd:"Mo" }, { d:10, wd:"Di" }, { d:11, wd:"Mi" }, { d:12, wd:"Do" }, { d:13, wd:"Fr" },
+  { d:16, wd:"Mo" }, { d:17, wd:"Di" }, { d:18, wd:"Mi" }, { d:19, wd:"Do" }, { d:20, wd:"Fr" },
+  { d:23, wd:"Mo" }, { d:24, wd:"Di" }, { d:25, wd:"Mi" }, { d:30, wd:"Mo" }, { d:31, wd:"Di" },
+];
+// Demo-Lücken: an diesen Tagen wurde nichts gebucht (09.05. entspricht der Tabellenzeile).
+const MONTH_GAPS = [9];
+const LAST_WORKDAY = MONTH_WORKDAYS[MONTH_WORKDAYS.length - 1].d;
+
+// Gebuchte Tage zum jeweiligen Demo-Zeitpunkt: alles bis heute außer den Lücken,
+// plus was im Prototyp nachgebucht wurde.
+function bookedDays(today, extra = []) {
+  return MONTH_WORKDAYS
+    .filter(w => w.d <= today && (!MONTH_GAPS.includes(w.d) || extra.includes(w.d)))
+    .map(w => w.d);
+}
+
+// Heutiger Tag der Periode (entspricht der offenen Zeile in der Tabelle)
+const TODAY_OF_MONTH = 9;
+
+const dayState = (d, today, booked) =>
+  booked.includes(d) ? "booked" : d > today ? "future" : "open";
+
+// Offene Tage = fällige Arbeitstage ohne Buchung (nie Zukunft, nie Abwesenheit).
+const countOpenMonthDays = (today, booked) =>
+  MONTH_WORKDAYS.filter(w => dayState(w.d, today, booked) === "open").length;
+
+const remainingWorkdays = today => MONTH_WORKDAYS.filter(w => w.d > today).length;
+
+// Kurz vor Monatsende: die letzten fünf Arbeitstage
+const isMonthEndPhase = today => today <= LAST_WORKDAY && remainingWorkdays(today) <= 5;
+const isPeriodClosed  = today => today > LAST_WORKDAY;
+
+// ─── Monatsabzeichen: ein Abzeichen je lückenlos erfasstem Monat ─
+// Motiv nach Jahreszeit. Es geht um Vollständigkeit, nicht um Tempo –
+// und es wird nicht mit anderen verglichen.
+const BADGE_YEAR = 2022;
+const MONTH_BADGES = [
+  { m:1,  name:"Januar",    short:"Jan", emoji:"❄️", season:"Winter",   color:"#6c8ebf" },
+  { m:2,  name:"Februar",   short:"Feb", emoji:"🌨️", season:"Winter",   color:"#6c8ebf" },
+  { m:3,  name:"März",      short:"Mrz", emoji:"🌱", season:"Frühling", color:"#5aa84f" },
+  { m:4,  name:"April",     short:"Apr", emoji:"🌷", season:"Frühling", color:"#5aa84f" },
+  { m:5,  name:"Mai",       short:"Mai", emoji:"🌸", season:"Frühling", color:"#5aa84f" },
+  { m:6,  name:"Juni",      short:"Jun", emoji:"☀️", season:"Sommer",   color:"#e8a31f" },
+  { m:7,  name:"Juli",      short:"Jul", emoji:"🌻", season:"Sommer",   color:"#e8a31f" },
+  { m:8,  name:"August",    short:"Aug", emoji:"🏖️", season:"Sommer",   color:"#e8a31f" },
+  { m:9,  name:"September", short:"Sep", emoji:"🍇", season:"Herbst",   color:"#c2733a" },
+  { m:10, name:"Oktober",   short:"Okt", emoji:"🍂", season:"Herbst",   color:"#c2733a" },
+  { m:11, name:"November",  short:"Nov", emoji:"🌰", season:"Herbst",   color:"#c2733a" },
+  { m:12, name:"Dezember",  short:"Dez", emoji:"🎄", season:"Winter",   color:"#6c8ebf" },
+];
+const CURRENT_MONTH  = 5;                 // Mai läuft
+const EARNED_MONTHS  = [1, 2, 3, 4];      // lückenlos erfasst
+const badgeByMonth   = m => MONTH_BADGES.find(b => b.m === m);
+
+// Das Abzeichen erscheint am ersten Arbeitstag des Folgemonats.
+function badgeState(m) {
+  if (EARNED_MONTHS.includes(m)) return "earned";
+  if (m === CURRENT_MONTH)       return "running";
+  return m < CURRENT_MONTH ? "missed" : "future";
+}
+
 // ─── Gamification-Einstellungen (Opt-out) ────────────────────────
 const GAMI_DEFAULTS = { progress:true, kudos:true, momentum:true };
 
@@ -211,7 +380,12 @@ Object.assign(window, {
   GANTT_ROWS, GANTT_MONTHS, GANTT_QUARTERS, TODAY_COL,
   SPRINTS, CURRENT_SPRINT, computeTeamStreak, BEST_STREAK,
   FEED_SEED, BOARD_COLUMNS, BOARD_CARDS,
-  computeProjectProgress, progressZone,
+  computeProjectProgress, computePlannedProjectProgress, projectZone, progressZone,
+  WP_SCHEDULE, DAYS_PER_COL, wpPlan, WP_THRESHOLDS, WP_THRESHOLD_DEFAULTS,
+  STATUS_META, wpStatus, wpStatusText,
+  MONTH_PERIOD, MONTH_WORKDAYS, MONTH_GAPS, TODAY_OF_MONTH, LAST_WORKDAY, bookedDays,
+  BADGE_YEAR, MONTH_BADGES, CURRENT_MONTH, EARNED_MONTHS, badgeByMonth, badgeState,
+  dayState, countOpenMonthDays, remainingWorkdays, isMonthEndPhase, isPeriodClosed,
   RISK_ROWS, ZEIT_ROWS, GAMI_DEFAULTS,
   REMINDER_DEFAULTS, PERIOD_DEADLINE, countOpenTimeDays, reminderLevel,
 });
