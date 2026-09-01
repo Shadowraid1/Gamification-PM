@@ -19,7 +19,7 @@ function FeedRow({ item, gami, onKudos }) {
 
         {item.type === "comment" ? (
           <>
-            <div className="feed-ctx">Kommentar zu „{item.card}\u201c</div>
+            <div className="feed-ctx">Kommentar zu „{item.card}“</div>
             <div className="feed-quote">{item.text}</div>
           </>
         ) : (
