@@ -1,4 +1,4 @@
-// gantt.jsx — Projektmodul: Tab-Shell, gemeinsamer State, GANTT mit WP-Fortschritt
+// gantt.jsx — GANTT mit WP-Fortschritt
 
 const PROJ_TABS = [
   { label:"GANTT Diagramm",  on:true },
@@ -13,7 +13,7 @@ const NCOL = 9;
 let feedSeq = 100;
 const nextId = () => "f" + (++feedSeq);
 
-// ─── Formular: Fortschritt eines Arbeitspakets setzen ────────────
+// ─── Formular: Fortschritt eines Arbeitspakets setzen 
 function ProgressForm({ wp, value, thresholds, onClose, onSave, onThresholds }) {
   const [v, setV]         = React.useState(value);
   const [thOpen, setOpen] = React.useState(false);
@@ -113,7 +113,7 @@ function ProgressForm({ wp, value, thresholds, onClose, onSave, onThresholds }) 
   );
 }
 
-// ─── Formular: Meilenstein bestätigen ────────────────────────────
+// ─── Formular: Meilenstein bestätigen 
 function MilestoneForm({ ms, onClose, onConfirm }) {
   const today = new Date().toLocaleDateString("de-DE", {day:"2-digit",month:"2-digit",year:"numeric"});
   const [date, setDate] = React.useState(today);
@@ -146,7 +146,7 @@ function MilestoneForm({ ms, onClose, onConfirm }) {
   );
 }
 
-// ─── Seitenpanel: Fortschritt aller Arbeitspakete ────────────────
+// ─── Seitenpanel: Fortschritt aller Arbeitspakete 
 function ProgressPanel({ progress, confirmed, thresholds, onClose, onPick }) {
   const [tab, setTab] = React.useState("open");
   const pct     = computeProjectProgress(progress);
@@ -222,7 +222,7 @@ function ProgressPanel({ progress, confirmed, thresholds, onClose, onPick }) {
   );
 }
 
-// ─── Eigenes Arbeitspaket, prominent über der Tabelle ────────────
+// ─── Eigenes Arbeitspaket, über der Tabelle
 function MyWorkpackage({ progress, thresholds, onOpen }) {
   const mine = WORKPACKAGES.filter(w => w.owner === ME);
   if (!mine.length) return null;
@@ -266,7 +266,7 @@ function MyWorkpackage({ progress, thresholds, onOpen }) {
   );
 }
 
-// ═══ Projektmodul ════════════════════════════════════════════════
+// ═══ Projektmodul 
 function ProjektScreen({ gami, onReset }) {
   const initProgress = {};
   WORKPACKAGES.forEach(w => { initProgress[w.id] = w.progress; });
@@ -307,7 +307,7 @@ function ProjektScreen({ gami, onReset }) {
           k.id !== commentId ? k
             : { ...k, kudos: k.kudos.includes(ME) ? k.kudos.filter(x => x !== ME) : [...k.kudos, ME] }) }));
 
-  // Neuer Kommentar auf dem Board → erscheint im Kudos-Feed
+  // Neuer Kommentar auf dem Board -> erscheint im Kudos-Feed
   const addComment = (cardId, text) => {
     const card = cards.find(c => c.id === cardId);
     const cid  = "k" + (++feedSeq);
