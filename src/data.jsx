@@ -6,7 +6,7 @@ const PROJECT = { name:"HZE_Master_01", code:"14020002", select:"[1] Keinem AP z
 // Angemeldeter Nutzer im Prototyp
 const ME = "peter";
 
-// ─── Team ────────────────────────────────────────────────────────
+// ─── Team 
 const TEAM_MEMBERS = [
   { id:"peter", name:"Peter K.", short:"Peter", role:"Projektleiter", avatar:"PK", color:"#9e1b52" },
   { id:"maria", name:"Maria S.", short:"Maria", role:"Requirements",  avatar:"MS", color:"#3a78c2" },
@@ -16,9 +16,9 @@ const TEAM_MEMBERS = [
 ];
 const memberById = id => TEAM_MEMBERS.find(m => m.id === id) || TEAM_MEMBERS[0];
 
-// ─── Arbeitspakete (Fortschritt = Kernmechanik 1) ────────────────
-// WP3 steht bewusst bei 53 %: der Nutzer sieht seinen eigenen Teilfortschritt
-// und den verbleibenden Rest (Goal-Gradient-Effekt).
+// ─── Arbeitspakete (Fortschritt = Kernmechanik 1) 
+// WP3 bei 53 %: der Nutzer sieht seinen eigenen Teilfortschritt
+// und den verbleibenden Rest.
 const WORKPACKAGES = [
   { id:"WP1", name:"WP1 – Initiation",    owner:"maria", progress:100, ms:"M10" },
   { id:"WP2", name:"WP2 – Requirements",  owner:"maria", progress:100, ms:"M20" },
@@ -29,7 +29,7 @@ const WORKPACKAGES = [
 ];
 const wpById = id => WORKPACKAGES.find(w => w.id === id);
 
-// ─── Meilensteine ────────────────────────────────────────────────
+// ─── Meilensteine
 // Ein Meilenstein wird erst bestätigbar, wenn sein Arbeitspaket 100 % erreicht.
 const MILESTONES = [
   { id:"M10", name:"Initiation abgeschlossen",     rowN:4,  at:0.5, wp:"WP1", emoji:"🚀" },
@@ -41,7 +41,7 @@ const MILESTONES = [
 ];
 const msById = id => MILESTONES.find(m => m.id === id);
 
-// ─── GANTT-Struktur ──────────────────────────────────────────────
+// ─── GANTT-Struktur 
 const GANTT_ROWS = [
   { n:1,  p:"",   name:"HZE_Master_01",             type:"project", bar:{start:0,   span:8.4, kind:"summary"} },
   { n:2,  p:"1",  name:"Keinem AP zugewiesen",      type:"group",   selected:true, bar:{start:0, span:8.2, kind:"task"} },
@@ -62,8 +62,8 @@ const GANTT_MONTHS   = ["Dez 21","Jan 22","Feb 22","Mrz 22","Apr 22","Mai 22","J
 const GANTT_QUARTERS = [{label:"Q1 2022",from:1,to:3},{label:"Q2 2022",from:4,to:6},{label:"Q3 2022",from:7,to:8}];
 const TODAY_COL = 3.0;
 
-// ─── Terminplan je Arbeitspaket (aus dem GANTT abgeleitet) ───────
-// Eine GANTT-Spalte = ein Monat ≈ 21 Arbeitstage. Daraus ergibt sich für
+// ─── Terminplan je Arbeitspaket (aus GANTT abgeleitet)
+// Eine GANTT-Spalte = ein Monat ca 21 Arbeitstage. Daraus ergibt sich für
 // jedes Arbeitspaket: Gesamtdauer, verstrichene Tage und der Soll-Fortschritt.
 const DAYS_PER_COL = 21;
 const WP_SCHEDULE = {};
@@ -82,16 +82,16 @@ function wpPlan(wpId) {
   };
 }
 
-// ─── Ampel-Schwellen: pro Arbeitspaket einstellbar ───────────────
+// ─── Ampel-Schwellen: pro Arbeitspaket einstellbar
 // Gemessen wird der Abstand zwischen Ist und Soll in Prozentpunkten.
-// Beispiel: 5 von 10 Tagen verstrichen (Soll 50 %), erst 10 % erledigt
-// → Rückstand 40 Punkte → rot, sobald crit ≤ 40.
+// 5 von 10 Tagen verstrichen (Soll 50 %), erst 10 % erledigt
+// Rückstand 40 Punkte -> rot, sobald crit <= 40.
 const WP_THRESHOLD_DEFAULTS = { warn:10, crit:25 };
 const WP_THRESHOLDS = {
   WP1:{ warn:10, crit:25 },
   WP2:{ warn:10, crit:25 },
-  WP3:{ warn:8,  crit:20 },   // kritischer Pfad → engere Schwellen
-  WP4:{ warn:15, crit:30 },   // Pilot mit Puffer → großzügiger
+  WP3:{ warn:8,  crit:20 },   // kritischer Pfad -> engere Schwellen
+  WP4:{ warn:15, crit:30 },   // Pilot mit Puffer -> großzügiger
   WP5:{ warn:10, crit:25 },
   WP6:{ warn:10, crit:25 },
 };
@@ -120,7 +120,7 @@ function wpStatus(wpId, actual, thresholds) {
   return                             mk("crit",    delta);
 }
 
-// Klartext für Tooltip und Formular – bewusst ohne Fachbegriffe
+// Klartext für Tooltip und Formular 
 function wpStatusText(st) {
   if (!st.plan) return st.label;
   if (st.key === "planned") return "Start noch nicht erreicht";
@@ -131,8 +131,8 @@ function wpStatusText(st) {
                        : " · " + st.delta + " % vor dem Plan");
 }
 
-// ─── Team-Momentum: Sprints im Zeitplan (Kernmechanik 3) ─────────
-// Die Serie zählt auf Teamebene, nicht pro Person.
+// ─── Team-Momentum: Sprints im Zeitplan (Kernmechanik 3)
+// zählt auf Teamebene, nicht pro Person.
 const SPRINTS = [
   { id:"S11", label:"Sprint 11", onTime:false },
   { id:"S12", label:"Sprint 12", onTime:true  },
@@ -153,8 +153,8 @@ function computeTeamStreak(sprints) {
 }
 const BEST_STREAK = 6;
 
-// ─── Kudos-Feed (Kernmechanik 2) ─────────────────────────────────
-// type: wp | ms | comment | sprint
+// ─── Kudos-Feed (Kernmechanik 2) 
+// type: wp, ms, comment, sprint
 const FEED_SEED = [
   { id:"f1", author:"anna",  type:"wp",      ts:"vor 2 Std.",
     text:"WP4 – Pilot auf 20 % aktualisiert", kudos:["maria"] },
@@ -171,7 +171,7 @@ const FEED_SEED = [
     kudos:["maria","tom","anna","max"] },
 ];
 
-// ─── Kanban-Board ────────────────────────────────────────────────
+// ─── Kanban-Board 
 const BOARD_COLUMNS = [
   { id:"backlog", label:"Backlog"   },
   { id:"doing",   label:"In Arbeit" },
@@ -206,7 +206,7 @@ const BOARD_CARDS = [
   { id:"c8", col:"done",    wp:"WP1", owner:"maria", title:"Projektsteckbrief erstellen",  comments:[] },
 ];
 
-// ─── Fortschrittsberechnung ──────────────────────────────────────
+// ─── Fortschrittsberechnung 
 // Zwei nachvollziehbare Definitionen, im Panel umschaltbar:
 //   gleich = ungewichteter Mittelwert aller Arbeitspakete
 //   dauer  = gewichtet mit der geplanten Dauer (ein langes AP zählt mehr)
@@ -221,7 +221,7 @@ function computeProjectProgress(progressMap, mode = "gleich") {
   return Math.round(sum / wsum);
 }
 
-// Soll-Fortschritt des Projekts zum heutigen Tag – Referenz für die Ampel.
+// Soll-Fortschritt des Projekts zum heutigen Tag – Referenz für Ampel.
 function computePlannedProjectProgress(mode = "gleich") {
   let sum = 0, wsum = 0;
   WORKPACKAGES.forEach(w => {
@@ -232,7 +232,7 @@ function computePlannedProjectProgress(mode = "gleich") {
   return Math.round(sum / wsum);
 }
 
-// Farbe des Projektbalkens: ebenfalls Ist gegen Soll, nicht gegen absolute Prozentmarken.
+// Farbe des Projektbalkens:  Ist gegen Soll, nicht gegen absolute Prozentmarken.
 function projectZone(pct, planned, th = WP_THRESHOLD_DEFAULTS) {
   if (pct >= 100)              return { key:"done",    ...STATUS_META.done    };
   const delta = pct - planned;
@@ -249,7 +249,7 @@ function progressZone(pct) {
   return { label:"in Arbeit", color:"var(--progress-light)" };
 }
 
-// ─── Risiken (nicht gamifiziert, normale Projektdaten) ───────────
+// ─── Risiken 
 const RISK_ROWS = [
   { id:"R-01", name:"Lieferverzug Fremdkomponente",         severity:"hoch",
     probability:"hoch",   impact:"kritisch", measure:"Zweitlieferant qualifizieren",     owner:"Peter K." },
@@ -278,13 +278,10 @@ const ZEIT_ROWS = [
   { datum:"Di 10.05", erf:"9:00", diff:"1:00",  pt:"1,13", ges:"9:00", ziel:"8:00" },
 ];
 
-// ─── Zeiterfassungs-Erinnerung (zustandsabhängig, nicht erzwungen) ───
-// Persönliche Einstellung: jeder wählt Zeitpunkt und Art selbst. Kein festes
-// Pop-up für alle, keine Uhrzeit, die auch bei Urlaub oder erledigter Buchung feuert.
+// ─── Zeiterfassungs-Erinnerung
 const REMINDER_DEFAULTS = { enabled:true, time:"16:30", mode:"leise" }; // mode: 'leise' | 'aktiv'
 
-// Perioden-Stichtag (Payroll/Controlling). Die Eskalation hängt hieran –
-// nicht an einer Tagesuhrzeit. Das eigentliche Ziel ist eine vollständige Periode.
+// Perioden-Stichtag (Payroll/Controlling). Das eigentliche Ziel ist eine vollständige Periode.
 const PERIOD_DEADLINE = { label:"Freigabe an Controlling" };
 
 // Zählt nur echte Lücken: buchungspflichtige Tage ohne Eintrag.
@@ -295,14 +292,14 @@ function countOpenTimeDays(rows) {
 
 // Eskalationsstufe abhängig von Tagen bis zum Stichtag.
 function reminderLevel(daysToDeadline) {
-  if (daysToDeadline <= 0) return "faellig"; // Stichtag erreicht/überschritten → aktive Kanäle
-  if (daysToDeadline <= 3) return "bald";    // Stichtag naht → deutlicherer Hinweis
-  return "offen";                            // früh → nur stiller Indikator
+  if (daysToDeadline <= 0) return "faellig"; // Stichtag erreicht/überschritten aktive Kanäle
+  if (daysToDeadline <= 3) return "bald";    // Stichtag naht deutlicherer Hinweis
+  return "offen";                            // früh nur stiller Indikator
 }
 
-// ─── Monatsraster der Zeiterfassung ──────────────────────────────
+// ─── Monatsraster der Zeiterfassung 
 // 20 buchungspflichtige Arbeitstage im Mai 2022. Feiertag (26.05.) und
-// Betriebsurlaub (27.05.) sind bewusst keine Kästchen: Abwesenheit darf den
+// Betriebsurlaub (27.05.) sind keine Kästchen: Abwesenheit darf den
 // Monat nicht „unvollständig“ machen.
 const MONTH_PERIOD = {
   label:"Mai 2022",
@@ -371,7 +368,7 @@ function badgeState(m) {
   return m < CURRENT_MONTH ? "missed" : "future";
 }
 
-// ─── Gamification-Einstellungen (Opt-out) ────────────────────────
+// ─── Gamification-Einstellungen (Opt-out) 
 const GAMI_DEFAULTS = { progress:true, kudos:true, momentum:true };
 
 Object.assign(window, {
