@@ -52,8 +52,8 @@ function Avatar({ id, size = 30 }) {
 }
 
 // ─── Fortschrittsbalken ──────────────────────────────────────────
-// Die Farbe kommt nicht aus der reinen Prozentzahl, sondern aus dem Abstand
-// zum Soll-Fortschritt. Der kleine Strich im Balken zeigt genau diesen Soll-Wert.
+// Die Farbe kommt nicht aus der reinen Prozentzahl sondern aus dem Abstand
+// zum Soll-Fortschritt der kleine Strich im Balken zeigt genau diesen sollwert.
 function ProgressBar({ pct, width = 90, height = 8, showPct = true, zoneColor, plan = null, title }) {
   const color = zoneColor || progressZone(pct).color;
   return (
@@ -70,7 +70,7 @@ function ProgressBar({ pct, width = 90, height = 8, showPct = true, zoneColor, p
   );
 }
 
-// ─── Status-Chip (Ampel im Klartext) ─────────────────────────────
+// ───  Ampel im Klartext ─────────────────────────────
 function StatusChip({ st, compact = false }) {
   return (
     <span className={"st-chip st-" + st.key} title={wpStatusText(st)}>
@@ -113,7 +113,7 @@ function ProgressRing({ pct, size = 104, zone: zoneIn, plan = null }) {
 
 // ─── Kudos-Button ────────────────────────────────────────────────
 // Anerkennung durch Kollegen: kein Punktestand, keine Rangliste.
-// Eigene Beiträge kann man nicht selbst würdigen.
+// Eigene Beiträge nicht selber loben (Eigenlob stinkt)
 function KudosButton({ kudos = [], onToggle, own = false, compact = false }) {
   const mine  = kudos.includes(ME);
   const names = kudos.map(id => memberById(id).short);
@@ -181,7 +181,7 @@ function MomentumOverlay({ emoji, title, sub, streak, accent, onDone }) {
     <div className="celeb-overlay" onClick={onDone}>
       <div className="celeb-card" onClick={e => e.stopPropagation()}
         style={accent ? { "--progress": accent, "--streak": accent } : undefined}>
-        {/* Konfetti läuft bewusst schnell durch: kurzer Moment, dann ist der Blick wieder frei. */}
+        {/* Konfetti soll schnell durchlaufen sonst warten leute ob noch was passiert */}
         <div className="celeb-confetti">
           {Array.from({length:18}).map((_,i) => (
             <span key={i} className={"cfp cfp-"+(i%4)}
