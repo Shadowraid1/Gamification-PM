@@ -1,11 +1,9 @@
 // zeit.jsx — Zeiterfassung (MeinKLUSA).
-// Keine Gamification (kein täglicher Streak auf Einzelpersonen). Stattdessen eine
-// faire Erinnerung: zustandsabhängig (nur bei echten Lücken), leise (nicht-blockierend)
-// und zum Perioden-Stichtag eskalierend. Buchen ist per Ein-Klick möglich.
+// Keine Gamification (kein täglicher Streak auf Einzelpersonen).  Buchen ist per Ein-Klick möglich.
 
 const ZEIT_TABS = ["Kalender","Projektaufwände","Zeiterfassung","Zusammenfassung","Stellvertreter","Standort","Arbeitsunfähigkeit"];
 
-// Kein Demo-Umschalter mehr: der Screen zeigt den laufenden Monat, das
+// der Screen zeigt den laufenden Monat, das
 // Abzeichenregal darunter zeigt die abgeschlossenen Monate des Jahres.
 
 function ZeitEntryForm({ target, onClose, onSubmit }) {
@@ -40,7 +38,7 @@ function ZeitEntryForm({ target, onClose, onSubmit }) {
   );
 }
 
-// Persönliche Erinnerungseinstellungen – bewusst pro Person, nicht zentral erzwungen.
+// Persönliche Erinnerungseinstellungen –  pro Person, nicht zentral erzwungen.
 function ReminderSettings({ reminder, onChange, onClose, onSimulate }) {
   return (
     <div className="rem-settings" onClick={e => e.stopPropagation()}>
@@ -94,9 +92,9 @@ function ReminderSettings({ reminder, onChange, onClose, onSimulate }) {
   );
 }
 
-// ─── Abzeichen je Monat (Motiv nach Jahreszeit) ──────────────────
+// ─── Abzeichen je Monat (Motiv nach Jahreszeit) 
 // Ein Abzeichen für jeden lückenlos erfassten Monat. Es erscheint am ersten
-// Arbeitstag des Folgemonats und lässt sich hier jederzeit wieder ansehen.
+// Arbeitstag des Folgemonats und lässt sich jederzeit wieder ansehen.
 let badgePopupShown = false;   // Pop-up nur einmal je Sitzung
 
 function BadgeShelf({ monthProgress, onOpen }) {
@@ -136,7 +134,7 @@ function BadgeShelf({ monthProgress, onOpen }) {
   );
 }
 
-// ─── Monatsraster: 20 Kästchen für die Arbeitstage ───────────────
+// ─── Monatsraster: 20 Kästchen für die Arbeitstage 
 // Ein Kästchen pro buchungspflichtigem Tag. Gebucht = Haken. Kein Streak, keine
 // Kette, die reißen kann: jedes Kästchen steht für sich, der Monat ist das Ziel.
 function MonthGrid({ today, booked, openDays, complete, onBook, onBookAll }) {
@@ -363,7 +361,7 @@ function ZeitScreen({ onOpenDaysChange }) {
         </div>
       )}
 
-      {/* Alles gebucht → ruhige Bestätigung statt Dauer-Nörgeln */}
+      {/* Alles gebucht */}
       {reminder.enabled && openDays === 0 && (
         <div className="rem-banner lvl-clear">
           <div className="rem-banner-icon"><Icon name="check" size={18} stroke={2.2}/></div>
