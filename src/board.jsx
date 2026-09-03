@@ -1,5 +1,5 @@
 // board.jsx — Kanban-Aufgabenboard
-// Beiträge und Kommentare sind für das Team sichtbar und können gewürdigt werden.
+// Beiträge + Kommentare nur für team sichtbar.
 
 function CardDetail({ card, gami, onClose, onComment, onKudos }) {
   const [text, setText] = React.useState("");
