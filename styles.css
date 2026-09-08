@@ -1,5 +1,4 @@
-/* styles.css — KLUSA Gamification-Prototyp v4
-   Mechaniken: Arbeitspaket-Fortschritt · Kudos · Team-Momentum */
+/* KLUSA Gamification-Prototyp */
 
 :root {
   --brand:   #9e1b52;
@@ -36,7 +35,7 @@ body { font-family:var(--font-ui); color:var(--ink); background:var(--bg); font-
 #root { height:100%; }
 button { font-family:inherit; cursor:pointer; }
 
-/* ═══ App shell ═══ */
+/* App shell */
 .kapp    { display:flex; flex-direction:column; height:100%; overflow:hidden; }
 .kappbar { display:flex; align-items:center; gap:20px; padding:0 18px; height:52px; background:var(--surface); border-bottom:1px solid var(--line); flex-shrink:0; }
 .kbrand  { height:26px; width:auto; }
@@ -54,7 +53,7 @@ button { font-family:inherit; cursor:pointer; }
 
 .klusa-screen { background:var(--surface); border:1px solid var(--line); border-radius:4px; box-shadow:0 1px 3px rgba(40,44,54,.06); max-width:1240px; margin:0 auto; }
 
-/* ═══ Tabs ═══ */
+/* Tabs */
 .ktabs { display:flex; padding:0 6px; border-bottom:1px solid var(--line); border-radius:4px 4px 0 0; flex-wrap:wrap; }
 .ktab  { position:relative; border:0; background:none; padding:11px 14px; font-size:13px; color:var(--ink-soft); border-bottom:2px solid transparent; margin-bottom:-1px; }
 .ktab:hover:not(.off) { color:var(--ink); }
@@ -62,7 +61,7 @@ button { font-family:inherit; cursor:pointer; }
 .ktabs-green .ktab.active   { color:var(--progress); font-weight:700; border-bottom-color:var(--progress); }
 .ktabs-magenta .ktab.active { color:var(--brand);    font-weight:700; border-bottom-color:var(--brand); }
 
-/* ═══ Toolbar ═══ */
+/* Toolbar */
 .ktoolbar { display:flex; align-items:center; gap:3px; padding:6px 10px; border-bottom:1px solid var(--line); flex-wrap:wrap; min-height:44px; }
 .ktool  { width:28px; height:26px; border:1px solid transparent; background:none; border-radius:5px; display:grid; place-items:center; color:var(--ink-soft); }
 .ktool:hover { background:var(--head-bg); border-color:var(--line-soft); }
@@ -80,7 +79,7 @@ button { font-family:inherit; cursor:pointer; }
 .ktb-stat  { font-size:12px; color:var(--ink-soft); margin-left:12px; }
 .ktb-stat b{ color:var(--ink); }
 
-/* ═══ Fortschrittsbalken ═══ */
+/* Fortschrittsbalken */
 .pbar-wrap  { display:inline-flex; align-items:center; gap:7px; width:100%; }
 .pbar-track { position:relative; background:var(--track); border-radius:4px; overflow:hidden; flex:1; min-width:40px; height:8px; display:block; }
 .pbar-fill  { display:block; height:100%; border-radius:4px; transition:width .55s cubic-bezier(.2,.8,.2,1), background .35s; }
@@ -96,10 +95,10 @@ button { font-family:inherit; cursor:pointer; }
 .dp-pct   { font-weight:700; min-width:34px; text-align:right; font-variant-numeric:tabular-nums; }
 .dp-caret { color:var(--muted); font-size:10px; }
 
-/* ═══ Avatare ═══ */
+/* Avatare */
 .kav { display:inline-grid; place-items:center; border-radius:50%; color:#fff; font-weight:700; flex-shrink:0; letter-spacing:.02em; }
 
-/* ═══ Kudos ═══ */
+/* Kudos */
 .kudos-btn { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:4px 11px; font-size:12px; color:var(--ink-soft); transition:border-color .15s, background .15s, transform .1s; }
 .kudos-btn:hover:not(:disabled) { border-color:var(--progress); color:var(--progress); }
 .kudos-btn:active:not(:disabled){ transform:scale(.94); }
@@ -115,7 +114,7 @@ button { font-family:inherit; cursor:pointer; }
 .kudos-faces .kav:first-child { margin-left:0; }
 .kf-more { font-size:10.5px; color:var(--muted); margin-left:5px; }
 
-/* ═══ Team-Momentum ═══ */
+/* Team-Momentum */
 .momentum { display:flex; flex-direction:column; gap:7px; }
 .momentum.compact { gap:4px; }
 .mom-head { display:flex; align-items:baseline; gap:10px; }
@@ -134,7 +133,7 @@ button { font-family:inherit; cursor:pointer; }
 @keyframes momNow { 0%,100%{opacity:.55} 50%{opacity:1} }
 .mom-foot { font-size:11px; color:var(--muted); }
 
-/* ═══ Eigenes Arbeitspaket ═══ */
+/* Eigenes Arbeitspaket */
 .mywp-strip { padding:12px 14px; border-bottom:1px solid var(--line-soft); background:var(--head-bg); display:flex; flex-direction:column; gap:8px; }
 .mywp { display:flex; align-items:center; gap:16px; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px 16px; flex-wrap:wrap; }
 .mywp.sprint { border-color:color-mix(in srgb,var(--streak) 45%,transparent); background:color-mix(in srgb,var(--streak) 5%,var(--surface)); }
@@ -153,7 +152,7 @@ button { font-family:inherit; cursor:pointer; }
 .mywp-btn  { border:1px solid var(--progress); background:var(--surface); color:var(--progress); border-radius:8px; padding:7px 14px; font-size:12.5px; font-weight:600; }
 .mywp-btn:hover { background:color-mix(in srgb,var(--progress) 10%,var(--surface)); }
 
-/* ═══ GANTT ═══ */
+/* GANTT */
 .gantt-content { display:flex; overflow:hidden; }
 .gantt-main    { flex:1; min-width:0; display:flex; flex-direction:column; }
 .gantt-table   { overflow-x:auto; }
@@ -210,7 +209,7 @@ button { font-family:inherit; cursor:pointer; }
 .ms-claim { animation:msPulse 1.9s ease-in-out infinite; cursor:pointer; }
 @keyframes msPulse { 0%,100%{transform:translate(-50%,-50%) rotate(45deg) scale(1)} 50%{transform:translate(-50%,-50%) rotate(45deg) scale(1.3); box-shadow:0 0 10px color-mix(in srgb,var(--streak) 60%,transparent)} }
 
-/* ═══ Seitenpanel ═══ */
+/* Seitenpanel */
 .score-panel { width:var(--panel-w); min-width:var(--panel-w); border-left:1px solid var(--line); display:flex; flex-direction:column; overflow-y:auto; background:var(--surface); animation:slideIn .2s cubic-bezier(.2,.8,.2,1); }
 @keyframes slideIn { from{transform:translateX(20px); opacity:0} }
 .sp-header { display:flex; justify-content:space-between; align-items:flex-start; padding:14px 16px 11px; border-bottom:1px solid var(--line-soft); background:var(--head-bg); }
@@ -232,7 +231,7 @@ button { font-family:inherit; cursor:pointer; }
 .sp-wp-me    { font-size:9.5px; font-weight:800; background:color-mix(in srgb,var(--brand) 12%,var(--surface)); color:var(--brand); border-radius:4px; padding:1px 5px; margin-left:auto; }
 .sp-note { padding:12px 16px 16px; font-size:10.5px; line-height:1.6; color:var(--muted); border-top:1px solid var(--line-soft); }
 
-/* ═══ Formulare ═══ */
+/* Formulare */
 .ms-entry-wrap { border-bottom:1px solid var(--line-soft); background:var(--head-bg); padding:12px 16px; animation:slideDown .2s cubic-bezier(.2,.8,.2,1); }
 @keyframes slideDown { from{opacity:0; transform:translateY(-8px)} }
 .ms-entry-form { background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:0 4px 16px rgba(40,44,54,.1); max-width:480px; overflow:hidden; }
@@ -263,7 +262,7 @@ button { font-family:inherit; cursor:pointer; }
 .pf-hint   { background:var(--head-bg); border-radius:7px; padding:9px 11px; font-size:11.5px; line-height:1.55; color:var(--muted); }
 .pf-hint-ok{ color:var(--progress); font-weight:600; }
 
-/* ═══ Kanban-Board ═══ */
+/* Kanban-Board */
 .board-screen { display:flex; flex-direction:column; }
 .bs-head { padding:14px 20px 12px; border-bottom:1px solid var(--line-soft); background:var(--head-bg); }
 .bs-cols { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px 20px 20px; align-items:start; }
@@ -314,7 +313,7 @@ button { font-family:inherit; cursor:pointer; }
 .cd-send    { border:0; background:var(--progress); color:#fff; border-radius:8px; padding:9px 15px; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:6px; }
 .cd-send:disabled { opacity:.4; cursor:not-allowed; }
 
-/* ═══ Team & Kudos ═══ */
+/* Team */
 .team-screen { display:flex; flex-direction:column; }
 .ts-header { padding:16px 20px 13px; border-bottom:1px solid var(--line-soft); background:var(--head-bg); }
 .ts-title  { font-size:15px; font-weight:700; color:var(--ink); }
@@ -352,7 +351,7 @@ button { font-family:inherit; cursor:pointer; }
 .tsk-count{ margin-left:auto; font-variant-numeric:tabular-nums; color:var(--muted); }
 .ts-note { font-size:10.5px; line-height:1.6; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px solid var(--line-soft); }
 
-/* ═══ Feiermoment ═══ */
+/* Feiermoment */
 .celeb-overlay { position:fixed; inset:0; background:rgba(20,24,30,.7); display:grid; place-items:center; z-index:300; animation:fadeIn .2s; }
 .celeb-card { position:relative; background:var(--surface); border-radius:20px; padding:34px 40px 30px; text-align:center; max-width:430px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.3); animation:celebUp .35s cubic-bezier(.2,1.1,.4,1); overflow:hidden; }
 @keyframes celebUp { from{transform:scale(.88) translateY(18px); opacity:0} }
@@ -370,19 +369,19 @@ button { font-family:inherit; cursor:pointer; }
 .cfp-2{ background:var(--gantt-bar); } .cfp-3{ background:var(--brand); }
 @keyframes cfFall { 70% { opacity:1; } to { transform:translateY(420px) rotate(540deg); opacity:0; } }
 
-/* ═══ Toast ═══ */
+/* Toast */
 .inline-toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%); z-index:200; display:flex; align-items:center; gap:9px; max-width:540px; background:#243447; color:#fff; padding:11px 16px; border-radius:9px; font-size:12.5px; line-height:1.45; box-shadow:0 10px 30px rgba(0,0,0,.25); cursor:pointer; animation:toastIn .28s cubic-bezier(.2,.9,.3,1); }
 .inline-toast svg { color:var(--progress); flex-shrink:0; }
 @keyframes toastIn { from{opacity:0; transform:translate(-50%,14px)} to{opacity:1; transform:translate(-50%,0)} }
 
-/* ═══ Infohinweis ═══ */
+/* Infohinweis */
 .info-dot-wrap { position:relative; display:inline-flex; margin-left:5px; vertical-align:middle; }
 .info-dot { background:none; border:0; padding:0; color:var(--muted); display:inline-flex; align-items:center; opacity:.65; transition:opacity .15s; }
 .info-dot:hover { opacity:1; color:var(--ink); }
 .info-pop { position:absolute; top:22px; right:-8px; z-index:60; width:265px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:11px 26px 11px 12px; box-shadow:0 8px 26px rgba(0,0,0,.16); font-size:11.5px; line-height:1.55; color:var(--ink); font-weight:400; text-align:left; white-space:normal; }
 .info-pop-x { position:absolute; top:6px; right:7px; background:none; border:0; color:var(--muted); font-size:11px; line-height:1; }
 
-/* ═══ Risiken ═══ */
+/* Risiken */
 .rk-screen { padding:16px 18px 20px; }
 .rk-head   { margin-bottom:12px; }
 .rk-title  { margin:0; font-size:15px; font-weight:700; }
@@ -396,7 +395,7 @@ button { font-family:inherit; cursor:pointer; }
 .rk-sev-hoch{ background:var(--danger); } .rk-sev-mittel{ background:var(--warn); } .rk-sev-niedrig{ background:var(--progress); }
 .rk-note { font-size:11px; color:var(--muted); line-height:1.6; margin:12px 0 0; }
 
-/* ═══ Zeiterfassung ═══ */
+/* Zeiterfassung */
 .zeit-table { font-size:12.5px; }
 .zt-head,.zt-row { display:grid; grid-template-columns:56px 92px 1fr 130px 110px 100px 100px 92px; align-items:center; }
 .zt-head { background:var(--head-bg); border-bottom:1px solid var(--line); height:40px; font-weight:600; color:var(--ink-soft); }
@@ -423,7 +422,7 @@ button { font-family:inherit; cursor:pointer; }
 .zeit-entry-form { background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:0 4px 16px rgba(40,44,54,.1); max-width:420px; overflow:hidden; }
 .zeit-entry-form .zef-submit { background:var(--brand); }
 
-/* ═══ Login ═══ */
+/* Login */
 .login-root { min-height:100vh; display:grid; place-items:center; background:var(--bg); }
 .login-card { background:var(--surface); border-radius:16px; padding:40px 48px; box-shadow:0 8px 40px rgba(0,0,0,.12); width:340px; animation:cardIn .35s cubic-bezier(.2,.8,.2,1); }
 .login-card-out { animation:cardOut .3s cubic-bezier(.4,0,.2,1) forwards; pointer-events:none; }
@@ -440,7 +439,7 @@ button { font-family:inherit; cursor:pointer; }
 .login-btn:hover:not(:disabled) { background:var(--brand-2); }
 .login-btn:disabled { opacity:.7; cursor:default; }
 
-/* ═══ Unternehmen ═══ */
+/* Unternehmen */
 .unt-screen  { overflow:hidden; }
 .unt-welcome { padding:20px 24px 16px; border-bottom:1px solid var(--line-soft); background:var(--head-bg); }
 .unt-greeting{ font-size:18px; font-weight:700; margin-bottom:3px; }
@@ -454,7 +453,7 @@ button { font-family:inherit; cursor:pointer; }
 .unc-title   { font-size:14px; font-weight:700; margin-bottom:4px; }
 .unc-text    { font-size:12.5px; color:var(--ink-soft); line-height:1.6; }
 
-/* ═══ Profilmenü ═══ */
+/* Profilmenü */
 .kavatar-wrap { position:relative; }
 .kprofile { position:absolute; top:40px; right:0; z-index:120; width:300px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 14px 40px rgba(0,0,0,.2); overflow:hidden; text-align:left; }
 .kprofile-head { display:flex; align-items:center; gap:11px; padding:13px 14px; position:relative; }
@@ -470,7 +469,7 @@ button { font-family:inherit; cursor:pointer; }
 .kpo-sub { display:block; font-size:10.5px; color:var(--muted); margin-top:1px; line-height:1.4; }
 .kprofile-note { padding:9px 14px 13px; font-size:10.5px; line-height:1.5; color:var(--muted); }
 
-/* ═══ Sichtbarkeitsstufen ═══ */
+/* Sichtbarkeitsstufen */
 .int-dezent .celeb-confetti,
 .int-dezent .mom-dot.md-now { animation:none; }
 .int-dezent .ms-claim,
@@ -481,16 +480,16 @@ button { font-family:inherit; cursor:pointer; }
 .int-lebendig .kudos-btn.given { box-shadow:0 0 0 3px color-mix(in srgb,var(--progress) 14%,transparent); }
 .int-lebendig .mywp.sprint { box-shadow:0 0 0 3px color-mix(in srgb,var(--streak) 14%,transparent); }
 
-/* ═══ Responsiv ═══ */
+/* Responsiv */
 @media (max-width:1080px) {
   .ts-split { grid-template-columns:1fr; }
   .ts-side  { border-left:0; border-top:1px solid var(--line-soft); }
   .bs-cols  { grid-template-columns:repeat(2,1fr); }
 }
 
-/* ═══ Zeiterfassungs-Erinnerung ═══ */
+/* Erinnerung */
 
-/* Modul-Badge (MeinKLUSA) */
+/* Modul-Badge */
 .kmod { position:relative; }
 .kmod-badge { display:inline-grid; place-items:center; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:999px; background:var(--warn); color:#fff; font-size:10px; font-weight:800; vertical-align:middle; }
 
@@ -501,7 +500,7 @@ button { font-family:inherit; cursor:pointer; }
 .tab-badge.lvl-bald    { background:var(--warn); }
 .tab-badge.lvl-faellig { background:var(--danger); }
 
-/* Erinnerungs-Zahnrad + Einstellungen */
+/* Erinnerungseinstellungen */
 .rem-set-wrap { position:relative; }
 .rem-gear { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:999px; padding:5px 12px; font-size:12px; }
 .rem-gear.on:hover { border-color:var(--brand); color:var(--brand); }
@@ -524,7 +523,7 @@ button { font-family:inherit; cursor:pointer; }
 .rem-sim:disabled { opacity:.4; cursor:not-allowed; }
 .rem-note { padding:9px 14px 0; margin:0; font-size:10.5px; line-height:1.55; color:var(--muted); }
 
-/* Banner (nicht-blockierend) */
+/* Banner */
 .rem-banner { display:flex; align-items:center; gap:13px; padding:12px 18px; border-bottom:1px solid var(--line-soft); animation:slideDown .22s cubic-bezier(.2,.8,.2,1); }
 .rem-banner-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:9px; flex-shrink:0; }
 .rem-banner-txt { flex:1; min-width:0; }
@@ -565,11 +564,9 @@ button { font-family:inherit; cursor:pointer; }
   .rem-banner-actions { width:100%; }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   Ergänzungen v5 – Soll-Ist-Ampel, Panel, Monatsraster
-   ═══════════════════════════════════════════════════════════════ */
+/* Soll-Ist-Ampel */
 
-/* ─── Soll-Marke im Fortschrittsbalken ─── */
+/* Soll-Marke */
 .pbar-plan, .mywp-plan, .dp-plan, .bar-plan {
   position:absolute; top:-2px; bottom:-2px; width:2px; border-radius:1px;
   background:var(--ink); opacity:.55; z-index:2; transform:translateX(-1px);
@@ -579,7 +576,7 @@ button { font-family:inherit; cursor:pointer; }
 .dp-track { overflow:visible; }
 .dp-soll  { font-size:10.5px; color:var(--muted); font-variant-numeric:tabular-nums; }
 
-/* ─── Statuschip ─── */
+/* Statuschip */
 .st-chip { display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700;
   border-radius:999px; padding:2px 8px; background:var(--head-bg); color:var(--ink-soft);
   border:1px solid var(--line-soft); white-space:nowrap; }
@@ -594,7 +591,7 @@ button { font-family:inherit; cursor:pointer; }
   border-color:color-mix(in srgb,var(--progress) 30%,transparent); color:#2c6f27; }
 .st-chip.st-planned { color:var(--muted); }
 
-/* ─── Legende ─── */
+/* Legende */
 .plegend  { margin:10px 14px 0; padding:10px 11px; background:var(--head-bg); border-radius:8px; }
 .plg-title{ font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
   color:var(--muted); margin-bottom:7px; }
@@ -604,7 +601,7 @@ button { font-family:inherit; cursor:pointer; }
   padding-top:8px; border-top:1px solid var(--line-soft); }
 .pf-th .plegend { margin:10px 0 0; }
 
-/* ─── Fortschrittsformular: Soll-Ist + Schwellen ─── */
+/* Schwellenformular */
 .pf-plan      { background:var(--head-bg); border-radius:8px; padding:10px 11px; display:flex; flex-direction:column; gap:8px; }
 .pf-plan-bar  { display:flex; }
 .pf-plan-txt  { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:11.5px; color:var(--muted); }
@@ -625,7 +622,7 @@ button { font-family:inherit; cursor:pointer; }
 .pf-th-val    { font-size:11.5px; font-weight:700; width:74px; text-align:right;
   font-variant-numeric:tabular-nums; }
 
-/* ─── Panel: Definition, offene vs. abgeschlossene Pakete ─── */
+/* Panel-Reiter */
 .sp-mode      { display:flex; align-items:center; gap:6px; padding:0 14px; margin-top:4px; }
 .sp-mode-lbl  { font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-right:2px; }
 .sp-mode-btn  { border:1px solid var(--line); background:var(--surface); border-radius:999px;
@@ -639,20 +636,20 @@ button { font-family:inherit; cursor:pointer; }
 .sp-done-list { display:flex; flex-direction:column; gap:7px; opacity:.72; }
 .sp-done-list .sp-wp { background:var(--head-bg); }
 
-/* ─── Eigenes Arbeitspaket ─── */
+/* Eigenes Arbeitspaket */
 .mywp-plan-txt { display:block; font-size:10.5px; color:var(--muted); margin-top:2px; }
 .mywp-left .st-chip { align-self:flex-start; margin-top:2px; }
 
-/* ─── GANTT-Marker nach Status ─── */
+/* GANTT-Marker */
 .wp-st-done, .wp-st-ahead, .wp-st-ontrack { background:var(--progress); }
 .wp-st-warn    { background:var(--warn); }
 .wp-st-crit    { background:var(--danger); }
 .wp-st-planned { background:var(--neutral); }
 
-/* ─── Kudos-Liste ─── */
+/* Kudos-Liste */
 .tsk-empty { font-size:11.5px; color:var(--muted); padding:8px 0; line-height:1.55; }
 
-/* ─── Monatsraster der Zeiterfassung ─── */
+/* Monatsraster */
 .mgrid-wrap  { margin:14px 18px 0; border:1px solid var(--line); border-radius:10px;
   padding:13px 15px 14px; background:var(--surface); }
 .mgrid-wrap.urgent { border-color:color-mix(in srgb,var(--warn) 45%,transparent);
@@ -707,16 +704,13 @@ button { font-family:inherit; cursor:pointer; }
 }
 
 
-/* ═══════════════════════════════════════════════════════════════
-   Ergänzungen v6 – GANTT ohne Fortschrittsspalte, Panel-Reiter,
-   Monatsabzeichen
-   ═══════════════════════════════════════════════════════════════ */
+/* Monatsabzeichen */
 
-/* Meilenstein-Aktion in der Namensspalte */
+/* Meilenstein-Aktion */
 .g-ms-lbl  { margin-left:auto; font-size:10.5px; font-weight:700; color:var(--progress); flex-shrink:0; }
 .gc-name .gms-claim { margin-left:auto; flex-shrink:0; }
 
-/* Balken im Chart öffnet den Fortschritt */
+/* Balken klickbar */
 .bar-click { cursor:pointer; }
 .bar-click:hover { filter:brightness(.94); box-shadow:0 0 0 2px color-mix(in srgb,var(--progress) 30%,transparent); }
 
@@ -732,11 +726,11 @@ button { font-family:inherit; cursor:pointer; }
 .sp-tab.active .sp-tab-n { background:color-mix(in srgb,var(--progress) 14%,var(--surface)); color:var(--progress); }
 .sp-wp-list.is-done .sp-wp { background:var(--head-bg); }
 
-/* Schwellen-Erklärung im Formular */
+/* Schwellen-Erklärung */
 .pf-th-note { font-size:11.5px; line-height:1.6; color:var(--ink-soft); background:var(--head-bg);
   border-radius:7px; padding:9px 11px; margin-top:4px; }
 
-/* ─── Abzeichenregal ─── */
+/* Abzeichenregal */
 .bshelf       { margin:14px 18px 0; border:1px solid var(--line); border-radius:10px; padding:13px 15px 14px; background:var(--surface); }
 .bshelf-head  { display:flex; align-items:baseline; gap:12px; margin-bottom:12px; }
 .bshelf-title { font-size:13px; font-weight:700; color:var(--ink); display:flex; align-items:center; }
