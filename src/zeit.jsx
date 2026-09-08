@@ -261,12 +261,13 @@ function ZeitScreen({ onOpenDaysChange }) {
          "Nichts nachzureichen, keine Rückfrage aus dem Controlling.",
   });
 
-  // Das Abzeichen des letzten abgeschlossenen Monats erscheint automatisch beim
-  // ersten Öffnen – so, wie es am ersten Arbeitstag des Folgemonats erscheint.
+  // Das Abzeichen des Vormonats erscheint nur am ersten Arbeitstag des Monats.
+  // An allen anderen Tagen liegt es im Regal und wird per Klick geöffnet.
   React.useEffect(() => {
     if (badgePopupShown) return;
     const last = EARNED_MONTHS[EARNED_MONTHS.length - 1];
-    if (last === CURRENT_MONTH - 1) {
+    const firstWorkday = MONTH_WORKDAYS[0].d;
+    if (last === CURRENT_MONTH - 1 && today === firstWorkday) {
       badgePopupShown = true;
       const b = badgeByMonth(last);
       const t = setTimeout(() => openBadge(b), 450);
