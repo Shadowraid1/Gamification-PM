@@ -263,7 +263,7 @@ const RISK_ROWS = [
     probability:"mittel", impact:"spürbar",  measure:"Angebote von drei Anbietern",       owner:"Max R."   },
 ];
 
-// ─── Zeiterfassung (nicht gamifiziert) ───────────────────────────
+// ─── Zeiterfassung 
 const ZEIT_ROWS = [
   { sum:true,  erf:"74:30", diff:"-93:30", diffNeg:true, pt:"9,31", ges:"74:30", ziel:"168:00" },
   { datum:"So 01.05", grund:"Feiertag", holiday:true },
@@ -339,9 +339,8 @@ const remainingWorkdays = today => MONTH_WORKDAYS.filter(w => w.d > today).lengt
 const isMonthEndPhase = today => today <= LAST_WORKDAY && remainingWorkdays(today) <= 5;
 const isPeriodClosed  = today => today > LAST_WORKDAY;
 
-// ─── Monatsabzeichen: ein Abzeichen je lückenlos erfasstem Monat ─
-// Motiv nach Jahreszeit. Es geht um Vollständigkeit, nicht um Tempo –
-// und es wird nicht mit anderen verglichen.
+// ─── Monatsabzeichen: ein Abzeichen je lückenlos erfasstem Monat
+// Motiv nach Jahreszeit
 const BADGE_YEAR = 2022;
 const MONTH_BADGES = [
   { m:1,  name:"Januar",    short:"Jan", emoji:"❄️", season:"Winter",   color:"#6c8ebf" },
