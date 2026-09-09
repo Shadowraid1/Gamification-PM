@@ -38,7 +38,7 @@ function ZeitEntryForm({ target, onClose, onSubmit }) {
   );
 }
 
-// Persönliche Erinnerungseinstellungen –  pro Person, nicht zentral erzwungen.
+// Persönliche Erinnerungseinstellungen –>  pro Person
 function ReminderSettings({ reminder, onChange, onClose, onSimulate }) {
   return (
     <div className="rem-settings" onClick={e => e.stopPropagation()}>
@@ -136,7 +136,7 @@ function BadgeShelf({ monthProgress, onOpen }) {
 
 // ─── Monatsraster: 20 Kästchen für die Arbeitstage 
 // Ein Kästchen pro buchungspflichtigem Tag. Gebucht = Haken. Kein Streak, keine
-// Kette, die reißen kann: jedes Kästchen steht für sich, der Monat ist das Ziel.
+// Kette, die reißen kann: jedes Kästchen steht für sich der Monat ist das Ziel.
 function MonthGrid({ today, booked, openDays, complete, onBook, onBookAll }) {
   const endPhase = isMonthEndPhase(today);
   const rest     = remainingWorkdays(today);
@@ -227,7 +227,7 @@ function ZeitScreen({ onOpenDaysChange }) {
   const lastBooked = [...rows].reverse().find(r => r.erf && !r.off && !r.holiday && !r.sum && !r.pending);
   const lastVal    = lastBooked ? lastBooked.erf : null;
 
-  // Modul- und Reiter-Badge aktuell halten
+  // Modul und Reiter-Badge aktuell halten
   React.useEffect(() => { onOpenDaysChange && onOpenDaysChange(openDays); }, [openDays]);
 
   const book = hours => {
