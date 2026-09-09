@@ -40,7 +40,7 @@ function Icon({ name, size = 16, stroke = 1.7, className = "", style = {} }) {
   );
 }
 
-// ─── Avatar ──────────────────────────────────────────────────────
+// ─── Avatar 
 function Avatar({ id, size = 30 }) {
   const m = memberById(id);
   return (
@@ -51,7 +51,7 @@ function Avatar({ id, size = 30 }) {
   );
 }
 
-// ─── Fortschrittsbalken ──────────────────────────────────────────
+// ─── Fortschrittsbalken 
 // Die Farbe kommt nicht aus der reinen Prozentzahl sondern aus dem Abstand
 // zum Soll-Fortschritt der kleine Strich im Balken zeigt genau diesen sollwert.
 function ProgressBar({ pct, width = 90, height = 8, showPct = true, zoneColor, plan = null, title }) {
@@ -70,7 +70,7 @@ function ProgressBar({ pct, width = 90, height = 8, showPct = true, zoneColor, p
   );
 }
 
-// ───  Ampel im Klartext ─────────────────────────────
+// ───  Ampel im Klartext
 function StatusChip({ st, compact = false }) {
   return (
     <span className={"st-chip st-" + st.key} title={wpStatusText(st)}>
@@ -83,7 +83,7 @@ function StatusChip({ st, compact = false }) {
   );
 }
 
-// ─── Fortschrittsring ────────────────────────────────────────────
+// ─── Fortschrittsring 
 function ProgressRing({ pct, size = 104, zone: zoneIn, plan = null }) {
   const zone = zoneIn || progressZone(pct);
   const r = size * 0.38, circ = 2 * Math.PI * r, dash = (pct / 100) * circ;
@@ -111,8 +111,8 @@ function ProgressRing({ pct, size = 104, zone: zoneIn, plan = null }) {
   );
 }
 
-// ─── Kudos-Button ────────────────────────────────────────────────
-// Anerkennung durch Kollegen: kein Punktestand, keine Rangliste.
+// ─── Kudos-Button
+// Anerkennung durch Kollegen
 // Eigene Beiträge nicht selber loben (Eigenlob stinkt)
 function KudosButton({ kudos = [], onToggle, own = false, compact = false }) {
   const mine  = kudos.includes(ME);
@@ -133,7 +133,7 @@ function KudosButton({ kudos = [], onToggle, own = false, compact = false }) {
   );
 }
 
-// ─── Kudos-Empfängerleiste ───────────────────────────────────────
+// ─── Kudos-Empfängerleiste 
 function KudosFaces({ kudos = [] }) {
   if (!kudos.length) return null;
   return (
@@ -144,7 +144,7 @@ function KudosFaces({ kudos = [] }) {
   );
 }
 
-// ─── Infohinweis ─────────────────────────────────────────────────
+// ─── Infohinweis 
 function InfoDot({ text }) {
   const [open, setOpen] = React.useState(false);
   return (
@@ -163,7 +163,7 @@ function InfoDot({ text }) {
   );
 }
 
-// ─── Sachliche Rückmeldung (kein Lob, nur Information) ───────────
+// ─── Sachliche Rückmeldung (kein Lob, nur Information) 
 function InlineToast({ text, onDone }) {
   React.useEffect(() => { const t = setTimeout(onDone, 5000); return () => clearTimeout(t); }, []);
   return (
@@ -174,7 +174,7 @@ function InlineToast({ text, onDone }) {
   );
 }
 
-// ─── Feiermoment (klein, teambezogen, selbst-schließend) ─────────
+// ─── Feiermoment
 function MomentumOverlay({ emoji, title, sub, streak, accent, onDone }) {
   React.useEffect(() => { const t = setTimeout(onDone, 5200); return () => clearTimeout(t); }, []);
   return (
@@ -205,8 +205,8 @@ function MomentumOverlay({ emoji, title, sub, streak, accent, onDone }) {
   );
 }
 
-// ─── Team-Momentum-Leiste ────────────────────────────────────────
-// Serie auf Teamebene: kein Personenvergleich, keine Rangliste.
+// ─── Team-Momentum-Leiste 
+// kein Personenvergleich keine Rangliste.
 function TeamMomentum({ sprints, current, compact = false }) {
   const streak = computeTeamStreak(sprints);
   return (
