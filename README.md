@@ -63,7 +63,7 @@ Abzeichen erscheint automatisch am ersten Arbeitstag des Folgemonats, an allen
 anderen Tagen lässt es sich per Klick erneut ansehen. Es geht um
 Vollständigkeit, nicht um Tempo, und es wird nicht mit anderen verglichen.
 
-Die Erinnerung an offene Buchungen ist persönlich einstellbar, mit Uhrzeit und
+Die Erinnerung an offene Buchungen (oben rechts) ist persönlich einstellbar, mit Uhrzeit und
 den Modi leise oder aktiv.
 
 ## Nicht gamifiziert
